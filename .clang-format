@@ -1,0 +1,14 @@
+BasedOnStyle: Chromium
+ColumnLimit: 132
+IncludeBlocks: Preserve
+BinPackArguments: false
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortBlocksOnASingleLine: false
+AlignAfterOpenBracket: AlwaysBreak
+AlignEscapedNewlines: DontAlign
+PointerAlignment: Left
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
