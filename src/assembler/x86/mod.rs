@@ -3,6 +3,133 @@ pub mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿 {
     use core::num::Wrapping;
     use std::convert::TryFrom;
 
+    macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙 {
+        ($𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮:ident {$𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷:expr} $({$𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴:expr})*) => {
+            impl TryFrom<i8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: i8) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u8) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
+                }
+            }
+            impl TryFrom<u8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: u8) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
+                }
+            }
+
+            impl TryFrom<i16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: i16) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u16) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                }
+            }
+            impl TryFrom<u16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: u16) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                }
+            }
+
+            impl TryFrom<i32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: i32) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u32) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                }
+            }
+            impl TryFrom<u32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: u32) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                }
+            }
+
+            impl TryFrom<i64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: i64) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u64) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                }
+            }
+            impl TryFrom<u64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: u64) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                }
+            }
+
+            #[cfg(has_i128)]
+            impl TryFrom<i128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: i128) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u128) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                }
+            }
+            #[cfg(has_i128)]
+            impl TryFrom<u128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: u128) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                }
+            }
+
+            impl TryFrom<isize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: isize) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as usize) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                }
+            }
+            impl TryFrom<usize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+                type Error = ();
+                fn try_from(value: usize) -> Result<Self, Self::Error> {
+                     $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
+                     // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
+                     //   Result<Self, Self::Error> is still one byte in size.
+                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                }
+            }
+
+            impl<𝓣> TryFrom<Wrapping<𝓣>> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 where $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮: TryFrom<𝓣> {
+                type Error = <$𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 as TryFrom<𝓣>>::Error;
+                fn try_from(value: Wrapping<𝓣>) -> Result<Self, Self::Error> {
+                    Self::try_from(value.0)
+                }
+            }
+        }
+    }
+
     macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
         ($(
          [$({$𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴:expr})*]
@@ -20,128 +147,7 @@ pub mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿 {
                     )*
                 }
 
-                impl TryFrom<i8> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: i8) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u8) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value) })
-                    }
-                }
-                impl TryFrom<u8> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: u8) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value) })
-                    }
-                }
-
-                impl TryFrom<i16> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: i16) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u16) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as i8) })
-                    }
-                }
-                impl TryFrom<u16> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: u16) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as u8) })
-                    }
-                }
-
-                impl TryFrom<i32> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: i32) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u32) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as i8) })
-                    }
-                }
-                impl TryFrom<u32> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: u32) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as u8) })
-                    }
-                }
-
-                impl TryFrom<i64> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: i64) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u64) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as i8) })
-                    }
-                }
-                impl TryFrom<u64> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: u64) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as u8) })
-                    }
-                }
-
-                #[cfg(has_i128)]
-                impl TryFrom<i128> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: i128) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as u128) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as i8) })
-                    }
-                }
-                #[cfg(has_i128)]
-                impl TryFrom<u128> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: u128) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as u8) })
-                    }
-                }
-
-                impl TryFrom<isize> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: isize) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value as usize) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as i8) })
-                    }
-                }
-                impl TryFrom<usize> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
-                    type Error = ();
-                    fn try_from(value: usize) -> Result<Self, Self::Error> {
-                         $(if ($𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴)(value) {return Err(())})*
-                         // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
-                         //   Result<Self, Self::Error> is still one byte in size.
-                         Ok(unsafe { std::mem::transmute::<u8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>(value as u8) })
-                    }
-                }
-
-                impl<𝓣> TryFrom<Wrapping<𝓣>> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 where $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮: TryFrom<𝓣> {
-                    type Error = <$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 as TryFrom<𝓣>>::Error;
-                    fn try_from(value: Wrapping<𝓣>) -> Result<Self, Self::Error> {
-                        Self::try_from(value.0)
-                    }
-                }
+                𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙!($𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {|value| value} $({$𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴})*);
 
                 $(
                     impl From<$𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
@@ -1785,6 +1791,23 @@ pub mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿 {
             𝔰𝔱7 = 7
         }
 
+        [{|value| value != 0x26 &&
+                  value != 0x2e &&
+                  value != 0x36 &&
+                  value != 0x3e &&
+                  value != 0x64 &&
+                  value != 0x65}]
+        []
+        []
+        pub enum 𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫 {
+            𝔢𝔰 = 0x26,
+            𝔠𝔰 = 0x2e,
+            𝔰𝔰 = 0x36,
+            𝔡𝔰 = 0x3e,
+            𝔣𝔰 = 0x64,
+            𝔤𝔰 = 0x65
+        }
+
         [{|value| value > 7}]
         []
         []
@@ -1798,6 +1821,7 @@ pub mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿 {
             𝔪𝔪6 = 6,
             𝔪𝔪7 = 7
         }
+
 
         [{|value| value == 0 || value > 7}]
         []
@@ -1825,5 +1849,297 @@ pub mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿 {
             𝔨6 = 6,
             𝔨7 = 7
         }
+
+        [{|value| value != 0}]
+        []
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3 {|value| value != 0},
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value != 0},
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value != 0},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ {|value| value != 0},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value != 0},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value != 0},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86 {|value| value != 0},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value != 0}
+        ]
+        pub enum 𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫 {
+            𝔵𝔪𝔪0 = 0
+        }
+
+        [{|value| value > 7}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
+        ]
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7}
+        ]
+        pub enum 𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3 {
+            𝔵𝔪𝔪0 = 0,
+            𝔵𝔪𝔪1 = 1,
+            𝔵𝔪𝔪2 = 2,
+            𝔵𝔪𝔪3 = 3,
+            𝔵𝔪𝔪4 = 4,
+            𝔵𝔪𝔪5 = 5,
+            𝔵𝔪𝔪6 = 6,
+            𝔵𝔪𝔪7 = 7
+        }
+
+        [{|value| value > 15}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
+        ]
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15}
+        ]
+        pub enum 𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {
+            𝔵𝔪𝔪0 = 0,
+            𝔵𝔪𝔪1 = 1,
+            𝔵𝔪𝔪2 = 2,
+            𝔵𝔪𝔪3 = 3,
+            𝔵𝔪𝔪4 = 4,
+            𝔵𝔪𝔪5 = 5,
+            𝔵𝔪𝔪6 = 6,
+            𝔵𝔪𝔪7 = 7,
+            𝔵𝔪𝔪8 = 8,
+            𝔵𝔪𝔪9 = 9,
+            𝔵𝔪𝔪10 = 10,
+            𝔵𝔪𝔪11 = 11,
+            𝔵𝔪𝔪12 = 12,
+            𝔵𝔪𝔪13 = 13,
+            𝔵𝔪𝔪14 = 14,
+            𝔵𝔪𝔪15 = 15
+        }
+
+        [{|value| value > 31}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512
+        ]
+        []
+        pub enum 𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {
+            𝔵𝔪𝔪0 = 0,
+            𝔵𝔪𝔪1 = 1,
+            𝔵𝔪𝔪2 = 2,
+            𝔵𝔪𝔪3 = 3,
+            𝔵𝔪𝔪4 = 4,
+            𝔵𝔪𝔪5 = 5,
+            𝔵𝔪𝔪6 = 6,
+            𝔵𝔪𝔪7 = 7,
+            𝔵𝔪𝔪8 = 8,
+            𝔵𝔪𝔪9 = 9,
+            𝔵𝔪𝔪10 = 10,
+            𝔵𝔪𝔪11 = 11,
+            𝔵𝔪𝔪12 = 12,
+            𝔵𝔪𝔪13 = 13,
+            𝔵𝔪𝔪14 = 14,
+            𝔵𝔪𝔪15 = 15,
+            𝔵𝔪𝔪16 = 16,
+            𝔵𝔪𝔪17 = 17,
+            𝔵𝔪𝔪18 = 18,
+            𝔵𝔪𝔪19 = 19,
+            𝔵𝔪𝔪20 = 20,
+            𝔵𝔪𝔪21 = 21,
+            𝔵𝔪𝔪22 = 22,
+            𝔵𝔪𝔪23 = 23,
+            𝔵𝔪𝔪24 = 24,
+            𝔵𝔪𝔪25 = 25,
+            𝔵𝔪𝔪26 = 26,
+            𝔵𝔪𝔪27 = 27,
+            𝔵𝔪𝔪28 = 28,
+            𝔵𝔪𝔪29 = 29,
+            𝔵𝔪𝔪30 = 30,
+            𝔵𝔪𝔪31 = 31
+        }
+
+        [{|value| value > 7}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
+        ]
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7}
+        ]
+        pub enum 𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ {
+            𝔶𝔪𝔪0 = 0,
+            𝔶𝔪𝔪1 = 1,
+            𝔶𝔪𝔪2 = 2,
+            𝔶𝔪𝔪3 = 3,
+            𝔶𝔪𝔪4 = 4,
+            𝔶𝔪𝔪5 = 5,
+            𝔶𝔪𝔪6 = 6,
+            𝔶𝔪𝔪7 = 7
+        }
+
+        [{|value| value > 15}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
+        ]
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 15}
+        ]
+        pub enum 𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {
+            𝔶𝔪𝔪0 = 0,
+            𝔶𝔪𝔪1 = 1,
+            𝔶𝔪𝔪2 = 2,
+            𝔶𝔪𝔪3 = 3,
+            𝔶𝔪𝔪4 = 4,
+            𝔶𝔪𝔪5 = 5,
+            𝔶𝔪𝔪6 = 6,
+            𝔶𝔪𝔪7 = 7,
+            𝔶𝔪𝔪8 = 8,
+            𝔶𝔪𝔪9 = 9,
+            𝔶𝔪𝔪10 = 10,
+            𝔶𝔪𝔪11 = 11,
+            𝔶𝔪𝔪12 = 12,
+            𝔶𝔪𝔪13 = 13,
+            𝔶𝔪𝔪14 = 14,
+            𝔶𝔪𝔪15 = 15
+        }
+
+        [{|value| value > 31}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512
+        ]
+        []
+        pub enum 𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {
+            𝔶𝔪𝔪0 = 0,
+            𝔶𝔪𝔪1 = 1,
+            𝔶𝔪𝔪2 = 2,
+            𝔶𝔪𝔪3 = 3,
+            𝔶𝔪𝔪4 = 4,
+            𝔶𝔪𝔪5 = 5,
+            𝔶𝔪𝔪6 = 6,
+            𝔶𝔪𝔪7 = 7,
+            𝔶𝔪𝔪8 = 8,
+            𝔶𝔪𝔪9 = 9,
+            𝔶𝔪𝔪10 = 10,
+            𝔶𝔪𝔪11 = 11,
+            𝔶𝔪𝔪12 = 12,
+            𝔶𝔪𝔪13 = 13,
+            𝔶𝔪𝔪14 = 14,
+            𝔶𝔪𝔪15 = 15,
+            𝔶𝔪𝔪16 = 16,
+            𝔶𝔪𝔪17 = 17,
+            𝔶𝔪𝔪18 = 18,
+            𝔶𝔪𝔪19 = 19,
+            𝔶𝔪𝔪20 = 20,
+            𝔶𝔪𝔪21 = 21,
+            𝔶𝔪𝔪22 = 22,
+            𝔶𝔪𝔪23 = 23,
+            𝔶𝔪𝔪24 = 24,
+            𝔶𝔪𝔪25 = 25,
+            𝔶𝔪𝔪26 = 26,
+            𝔶𝔪𝔪27 = 27,
+            𝔶𝔪𝔪28 = 28,
+            𝔶𝔪𝔪29 = 29,
+            𝔶𝔪𝔪30 = 30,
+            𝔶𝔪𝔪31 = 31
+        }
+
+        [{|value| value > 7}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ
+        ]
+        [   𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64 {|value| value > 7},
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7},
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {|value| value > 7}
+        ]
+        pub enum 𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86 {
+            𝔷𝔪𝔪0 = 0,
+            𝔷𝔪𝔪1 = 1,
+            𝔷𝔪𝔪2 = 2,
+            𝔷𝔪𝔪3 = 3,
+            𝔷𝔪𝔪4 = 4,
+            𝔷𝔪𝔪5 = 5,
+            𝔷𝔪𝔪6 = 6,
+            𝔷𝔪𝔪7 = 7
+        }
+
+        [{|value| value > 31}]
+        [   𝐱𝐦𝐦0_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₚₑₙₜᵢᵤₘ3,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐱𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,
+            𝐲𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512,
+            𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
+        ]
+        []
+        pub enum 𝐳𝐦𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₐᵥₓ512 {
+            𝔷𝔪𝔪0 = 0,
+            𝔷𝔪𝔪1 = 1,
+            𝔷𝔪𝔪2 = 2,
+            𝔷𝔪𝔪3 = 3,
+            𝔷𝔪𝔪4 = 4,
+            𝔷𝔪𝔪5 = 5,
+            𝔷𝔪𝔪6 = 6,
+            𝔷𝔪𝔪7 = 7,
+            𝔷𝔪𝔪8 = 8,
+            𝔷𝔪𝔪9 = 9,
+            𝔷𝔪𝔪10 = 10,
+            𝔷𝔪𝔪11 = 11,
+            𝔷𝔪𝔪12 = 12,
+            𝔷𝔪𝔪13 = 13,
+            𝔷𝔪𝔪14 = 14,
+            𝔷𝔪𝔪15 = 15,
+            𝔷𝔪𝔪16 = 16,
+            𝔷𝔪𝔪17 = 17,
+            𝔷𝔪𝔪18 = 18,
+            𝔷𝔪𝔪19 = 19,
+            𝔷𝔪𝔪20 = 20,
+            𝔷𝔪𝔪21 = 21,
+            𝔷𝔪𝔪22 = 22,
+            𝔷𝔪𝔪23 = 23,
+            𝔷𝔪𝔪24 = 24,
+            𝔷𝔪𝔪25 = 25,
+            𝔷𝔪𝔪26 = 26,
+            𝔷𝔪𝔪27 = 27,
+            𝔷𝔪𝔪28 = 28,
+            𝔷𝔪𝔪29 = 29,
+            𝔷𝔪𝔪30 = 30,
+            𝔷𝔪𝔪31 = 31
+        }
     }
+
+    #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+    #[repr(i8)]
+    pub enum 𝐬𝐜𝐚𝐥𝐞 {
+        𝔵1 = 1,
+        𝔵2 = 2,
+        𝔵4 = 4,
+        𝔵8 = 8
+    }
+
+    // Note: (value * 0 + 1) gives us 1 of the appropriate type.
+    // Otherwise << would use 1 to determine type of the result and would end up with i32, not i8/u8 which we need.
+    𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙!(𝐬𝐜𝐚𝐥𝐞 {|value| (value * 0 + 1) << value} {|value| value > 3});
 }
