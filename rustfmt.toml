@@ -1,1 +1,3 @@
 max_width = 132
+where_single_line = true
+empty_item_single_line = true
