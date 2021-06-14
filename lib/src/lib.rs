@@ -14,7 +14,7 @@
 
 #![allow(uncommon_codepoints)]
 #![allow(non_camel_case_types)]
-#![recursion_limit = "100000"]
+#![recursion_limit = "1000"]
 
 #[path = "assembler/mod.rs"]
 pub mod 𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
