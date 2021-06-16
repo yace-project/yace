@@ -12,6 +12,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(pub(crate) ());
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(pub(crate) ());
+
 macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙 {
         ($𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮:ident {$𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷:expr}) => {
             #[cfg(test)]
@@ -22,22 +28,22 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
         };
         ($𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮:ident {$𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷:expr} {$𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴:expr}) => {
             impl core::convert::TryFrom<i8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: i8) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u8) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u8) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
                 }
             }
             impl core::convert::TryFrom<u8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: u8) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
@@ -45,22 +51,22 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
 
             impl core::convert::TryFrom<i16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: i16) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u16) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u16) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: u16) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
@@ -68,22 +74,22 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
 
             impl core::convert::TryFrom<i32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: i32) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u32) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u32) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: u32) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
@@ -91,22 +97,22 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
 
             impl core::convert::TryFrom<i64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: i64) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u64) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u64) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: u64) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
@@ -115,11 +121,11 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
 
             #[cfg(has_i128)]
             impl core::convert::TryFrom<i128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: i128) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u128) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u128) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
@@ -127,11 +133,11 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
             #[cfg(has_i128)]
             impl core::convert::TryFrom<u128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: u128) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
@@ -139,22 +145,22 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
 
             impl core::convert::TryFrom<isize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: isize) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as usize) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as usize) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<usize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
-                type Error = ();
+                type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
                 fn try_from(value: usize) -> Result<Self, Self::Error> {
-                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(())}
+                     if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
                      Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
@@ -223,15 +229,15 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                     impl core::convert::TryFrom<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
                         // The only possible error here can be is “register doesn't belong to specific register class”.
                         //
-                        // Returning Err(()) is enough to pass that infomation but makes Result smaller (although in real code it's
-                        // almost always consumed with ok() thus we may pass some more info, but then if it's always consumed by ok()
-                        // then what's the point of passing more into?).
-                        type Error = ();
+                        // Returning Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(())) is enough to pass that infomation but makes Result smaller
+                        // (although in real code it's almost always consumed with ok() thus we may pass some more info, but then
+                        // if it's always consumed by ok() then what's the point of passing more into?).
+                        type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫;
 
                         #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                         #[inline(always)]
                         fn try_from(value: $𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮) -> Result<Self, Self::Error> {
-                            if $𝓮𝓷𝓾𝓶_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as i8) {return Err(())}
+                            if $𝓮𝓷𝓾𝓶_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as i8) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(()))}
                             // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                             //   Result<Self, Self::Error> is still one byte in size.
                             Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) })
@@ -241,13 +247,13 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
 
                 #[cfg(test)]
                 impl core::convert::TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
-                    type Error = ();
+                    type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                     fn try_from(value: i8) -> Result<Self, Self::Error> {
                         match value {
                             $(
                                 value if value >=0 && value == $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮::$𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓷𝓪𝓶𝓮 as i8 => Ok(𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕($𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮::$𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓷𝓪𝓶𝓮)),
                              )*
-                            _ => Err(())
+                            _ => Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))
                         }
                     }
                 }
@@ -255,12 +261,12 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                 #[cfg(test)]
                 impl 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
                     #[allow(dead_code)]
-                    fn all_from(value: i8) -> Result<Self, ()> {
+                    fn all_from(value: i8) -> Result<Self, 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫> {
                         match value {
                             $(
                                 value if value == $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮::$𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓷𝓪𝓶𝓮 as i8 => Ok(𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕($𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮::$𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓷𝓪𝓶𝓮)),
                              )*
-                            _ => Err(())
+                            _ => Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))
                         }
                     }
                 }
@@ -285,10 +291,10 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                     impl core::convert::TryFrom<𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮>> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
                         // The only possible error here can be is “register doesn't belong to specific register class”.
                         //
-                        // Returning Err(()) is enough to pass that infomation but makes Result smaller (although in real code it's
-                        // almost always consumed with ok() thus we may pass some more info, but then if it's always consumed by ok()
-                        // then what's the point of passing more into?).
-                        type Error = ();
+                        // Returning Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(())) is enough to pass that infomation but makes Result smaller
+                        // (although in real code it's almost always consumed with ok() thus we may pass some more info, but then
+                        // if it's always consumed by ok() then what's the point of passing more into?).
+                        type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
 
                         fn try_from(value: 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮>) -> Result<Self, Self::Error> {
                             // Certain enum values shouldn't be converted even if values match.
@@ -3323,7 +3329,7 @@ impl From<super::𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯�
 
 #[cfg(test)]
 impl core::convert::TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞> {
-    type Error = ();
+    type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
     #[allow(dead_code)]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
         match value {
@@ -3331,7 +3337,7 @@ impl core::convert::TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_�
             1 => Ok(𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵2)),
             2 => Ok(𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵4)),
             3 => Ok(𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵8)),
-            _ => Err(()),
+            _ => Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(())),
         }
     }
 }
