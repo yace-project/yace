@@ -79,8 +79,7 @@ pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items:
             .parse()
             .unwrap();
     };
-    if let None = iter.next() {
-    } else {
+    if iter.next().is_some() {
         return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — spurious tokens after main group.\");"
             .parse()
             .unwrap();
@@ -145,49 +144,49 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞�
         let mut process = |identifier: &Ident| -> Option<&'static str> {
             match identifier.to_string().as_str() {
                 "𝔞𝔡𝔡𝔯16" => {
-                    if let Some(_) = result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 {
+                    if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(16)
                     }
                 }
                 "𝔞𝔡𝔡𝔯32" => {
-                    if let Some(_) = result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 {
+                    if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(32)
                     }
                 }
                 "𝔞𝔡𝔡𝔯64" => {
-                    if let Some(_) = result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 {
+                    if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(64)
                     }
                 }
                 "𝔡𝔞𝔱𝔞16" => {
-                    if let Some(_) = result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 {
+                    if result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
                     } else {
                         result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(16)
                     }
                 }
                 "𝔡𝔞𝔱𝔞32" => {
-                    if let Some(_) = result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 {
+                    if result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
                     } else {
                         result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(32)
                     }
                 }
                 "ₓ𝔦𝔷" => {
-                    if let Some(_) = result.ₓ𝗂𝗓 {
+                    if result.ₓ𝗂𝗓.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated ₓ𝔦𝔷 marker.\");");
                     } else {
                         result.ₓ𝗂𝗓 = Some(true)
                     }
                 }
                 "ₐᵥₓ512" => {
-                    if let Some(_) = result.𝖺𝗏𝗑𝟧𝟣𝟤 {
+                    if result.𝖺𝗏𝗑𝟧𝟣𝟤.is_some() {
                         return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated ₐᵥₓ512 marker.\");");
                     } else {
                         result.𝖺𝗏𝗑𝟧𝟣𝟤 = Some(true)
