@@ -9,3 +9,6 @@ edition = "2018"
 
 [dependencies]
 yace-codegen = { version = "=0.0.1", path = "../codegen" }
+
+[features]
+std = []

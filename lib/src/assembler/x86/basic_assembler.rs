@@ -35,7 +35,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u8) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
                 }
             }
             impl core::convert::TryFrom<u8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
@@ -46,7 +46,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value)) })
                 }
             }
 
@@ -58,7 +58,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u16) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
@@ -69,7 +69,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
                 }
             }
 
@@ -81,7 +81,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u32) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
@@ -92,7 +92,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
                 }
             }
 
@@ -104,7 +104,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u64) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<u64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
@@ -115,7 +115,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
                 }
             }
 
@@ -128,7 +128,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as u128) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             #[cfg(has_i128)]
@@ -140,7 +140,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
                 }
             }
 
@@ -152,7 +152,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as usize) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
+                     Ok(unsafe { core::mem::transmute::<i8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8)) })
                 }
             }
             impl core::convert::TryFrom<usize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
@@ -163,7 +163,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                      if $𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}
                      // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                      //   Result<Self, Self::Error> is still one byte in size.
-                     Ok(unsafe { std::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
+                     Ok(unsafe { core::mem::transmute::<u8, $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮>(($𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as u8)) })
                 }
             }
 
@@ -213,14 +213,14 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                         #[inline(always)]
                         fn from(value: $𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮) -> Self {
                             // Note: we are using repr(i8) here thus conversion is safe.
-                            unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) }
+                            unsafe { core::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) }
                         }
                     }
                     impl From<$𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮> for Option<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
                         #[inline(always)]
                         fn from(value: $𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮) -> Self {
                             // Note: we are using repr(i8) here thus conversion is safe.
-                            Some(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) })
+                            Some(unsafe { core::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) })
                         }
                     }
                  )*
@@ -240,7 +240,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                             if $𝓮𝓷𝓾𝓶_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴(value as i8) {return Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(()))}
                             // Note: we are using repr(i8) here thus conversion is safe and it doesn't disable any optimizations:
                             //   Result<Self, Self::Error> is still one byte in size.
-                            Ok(unsafe { std::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) })
+                            Ok(unsafe { core::mem::transmute::<i8, $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>($($𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)*(value as i8)) })
                         }
                     }
                  )*
