@@ -134,7 +134,7 @@ pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items:
 struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
     𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾: Option<core::num::NonZeroI8>,
     𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾: Option<core::num::NonZeroI8>,
-    ₓ𝗂𝗓: Option<bool>,
+    ₓ𝗂𝗓: Option<i8>,
     𝖺𝗏𝗑𝟧𝟣𝟤: Option<bool>,
 }
 
@@ -179,10 +179,9 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞�
                     }
                 }
                 "ₓ𝔦𝔷" => {
-                    if result.ₓ𝗂𝗓.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated ₓ𝔦𝔷 marker.\");");
-                    } else {
-                        result.ₓ𝗂𝗓 = Some(true)
+                    result.ₓ𝗂𝗓 = match result.ₓ𝗂𝗓 {
+                        Some(count) => Some(count + 1),
+                        None => Some(1),
                     }
                 }
                 "ₐᵥₓ512" => {
@@ -232,11 +231,11 @@ fn filter_x86_markers_iterable(
             match token {
                 TokenTree::Group(mut data_group_to_process) if matches!(data_group_to_process.delimiter(), Delimiter::Bracket) => {
                     match marker_is_compatible(unwrapped_token.to_string().as_ref(), attributes) {
-                        Some(true) => {
+                        (Some(true), attributes) => {
                             filter_x86_markers_iterable(output, &mut data_group_to_process.stream().into_iter(), attributes)
                         }
-                        Some(false) => (),
-                        None => output.extend([
+                        (Some(false), _) => (),
+                        (None, _) => output.extend([
                             unwrapped_token,
                             filter_x86_markers_group(&mut data_group_to_process, attributes),
                         ]),
@@ -274,19 +273,40 @@ fn filter_x86_markers_group(
 }
 
 fn marker_is_compatible(
-    marker: &str, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
-) -> Option<bool> {
+    marker: &str,
+    attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
+) -> (Option<bool>, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬) {
     match marker {
-        "ℜ16" => Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16)),
-        "ℜ32" => Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(32)),
-        "Ξ16" => Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16)),
-        "Ξ32" => Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(32)),
-        "Ξ86" => Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)),
-        "Ξ64" => Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(64)),
-        "Ξ𝔦𝔷" => Some(attributes.ₓ𝗂𝗓 == Some(true)),
-        "Χ𝔦𝔷" => Some(attributes.ₓ𝗂𝗓 != Some(true)),
-        "Ξ𝔷𝔷" => Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 == Some(true)),
-        "Χ𝔷𝔷" => Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 != Some(true)),
-        _ => None,
+        "ℜ16" => (Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16)), attributes),
+        "ℜ32" => (Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(32)), attributes),
+        "Ξ16" => (Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16)), attributes),
+        "Ξ32" => (Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(32)), attributes),
+        "Ξ86" => (Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)), attributes),
+        "Ξ64" => (Some(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(64)), attributes),
+        "Ξ𝔦𝔷" => match attributes.ₓ𝗂𝗓 {
+            None => (Some(false), attributes),
+            Some(1) => (
+                Some(true),
+                𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
+                    𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾: attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾,
+                    𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾: attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾,
+                    ₓ𝗂𝗓: None,
+                    𝖺𝗏𝗑𝟧𝟣𝟤: attributes.𝖺𝗏𝗑𝟧𝟣𝟤,
+                },
+            ),
+            Some(count) => (
+                Some(true),
+                𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
+                    𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾: attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾,
+                    𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾: attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾,
+                    ₓ𝗂𝗓: Some(count - 1),
+                    𝖺𝗏𝗑𝟧𝟣𝟤: attributes.𝖺𝗏𝗑𝟧𝟣𝟤,
+                },
+            ),
+        },
+        "Χ𝔦𝔷" => (Some(attributes.ₓ𝗂𝗓 == None), attributes),
+        "Ξ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 == Some(true)), attributes),
+        "Χ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 != Some(true)), attributes),
+        _ => (None, attributes),
     }
 }
