@@ -1049,7 +1049,7 @@ class 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓 : p
       if (base == 0b100)
         𝖞𝖆𝖈𝖊_𝖚𝖓𝖑𝖎𝖐𝖊𝖑𝖞 {
           // NOLINTNEXTLINE(hicpp-signed-bitwise)
-          return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b00'000'100), 𝐮𝐢𝐧𝐭₈(0b00'100'100)});
+          return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b00'000'100 bitor (reg << 3)), 𝐮𝐢𝐧𝐭₈(0b00'100'100)});
         }
       // NOLINTNEXTLINE(hicpp-signed-bitwise)
       return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b00'000'000 bitor (reg << 3) bitor base)});
@@ -1058,7 +1058,7 @@ class 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓 : p
       if (base == 0b100)
         𝖞𝖆𝖈𝖊_𝖚𝖓𝖑𝖎𝖐𝖊𝖑𝖞 {
           // NOLINTNEXTLINE(hicpp-signed-bitwise)
-          return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b01'000'100), 𝐮𝐢𝐧𝐭₈(0b00'100'100), 𝐮𝐢𝐧𝐭₈(𝐢𝐧𝐭₈(address.disp))});
+          return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b01'000'100 bitor (reg << 3)), 𝐮𝐢𝐧𝐭₈(0b00'100'100), 𝐮𝐢𝐧𝐭₈(𝐢𝐧𝐭₈(address.disp))});
         }
       // NOLINTNEXTLINE(hicpp-signed-bitwise)
       return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{𝐮𝐢𝐧𝐭₈(0b01'000'000 bitor (reg << 3) bitor base), 𝐮𝐢𝐧𝐭₈(𝐢𝐧𝐭₈(address.disp))});
@@ -1067,7 +1067,7 @@ class 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓 : p
       𝖞𝖆𝖈𝖊_𝖚𝖓𝖑𝖎𝖐𝖊𝖑𝖞 {
         // NOLINTNEXTLINE(hicpp-signed-bitwise)
         return emitter.𝑒𝑚𝑖𝑡ₘᵣₘ(std::array{
-            𝐮𝐢𝐧𝐭₈(0b10'000'100),
+            𝐮𝐢𝐧𝐭₈(0b10'000'100 bitor (reg << 3)),
             𝐮𝐢𝐧𝐭₈(0b00'100'100),
             𝐮𝐢𝐧𝐭₈(address.disp),
             𝐮𝐢𝐧𝐭₈(address.disp >> 𝔟𝔶𝔱𝔢𝔰𝔦𝔷𝔢),        // NOLINT(hicpp-signed-bitwise)
