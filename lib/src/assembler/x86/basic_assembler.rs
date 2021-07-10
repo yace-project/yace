@@ -3526,7 +3526,7 @@ impl super::𝗶𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻::𝒐𝒑�
 // valid input.
 //
 // Thus we can be sure that we can use that value safely and we can verify correctness with an appropriate test.
-// Note: we provide 𝔡𝔲𝔪𝔪𝔶{0,1,8,9,11,13,15} members in test configuration to ensure that change in representation wouldn't lead to
+// Note: we provide _𝔡𝔲𝔪𝔪𝔶{0,1,8,9,11,13,15} members in test configuration to ensure that change in representation wouldn't lead to
 // “undefined behavior”. Function into_address_8086_disctiminant doesn't produce these and tests verify that.
 #[cfg(not(test))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -3550,22 +3550,22 @@ pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦�
 #[allow(non_camel_case_types)]
 #[repr(i8)]
 pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭 {
-    𝔡𝔲𝔪𝔪𝔶0 = 0,
-    𝔡𝔲𝔪𝔪𝔶1 = 1,
+    _𝔡𝔲𝔪𝔪𝔶0 = 0,
+    _𝔡𝔲𝔪𝔪𝔶1 = 1,
     𝔟𝔵_𝔰𝔦 = 2,
     𝔟𝔵_𝔡𝔦 = 3,
     𝔟𝔭_𝔰𝔦 = 4,
     𝔟𝔭_𝔡𝔦 = 5,
     𝔫𝔬𝔫𝔢_𝔰𝔦 = 6,
     𝔫𝔬𝔫𝔢_𝔡𝔦 = 7,
-    𝔡𝔲𝔪𝔪𝔶8 = 8,
-    𝔡𝔲𝔪𝔪𝔶9 = 9,
+    _𝔡𝔲𝔪𝔪𝔶8 = 8,
+    _𝔡𝔲𝔪𝔪𝔶9 = 9,
     𝔟𝔵_𝔫𝔬𝔫𝔢 = 10,
-    𝔡𝔲𝔪𝔪𝔶11 = 11,
+    _𝔡𝔲𝔪𝔪𝔶11 = 11,
     𝔟𝔭_𝔫𝔬𝔫𝔢 = 12,
-    𝔡𝔲𝔪𝔪𝔶13 = 13,
+    _𝔡𝔲𝔪𝔪𝔶13 = 13,
     𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 14,
-    𝔡𝔲𝔪𝔪𝔶15 = 15,
+    _𝔡𝔲𝔪𝔪𝔶15 = 15,
 }
 
 pub(crate) fn into_address_8086_discriminant(
