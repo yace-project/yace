@@ -266,6 +266,7 @@ fn test_emit_legacy_instruction_sanity() {
                     emit_legacy_reg_rm_instruction_with_u16 [emit_u16(0xf2f1)] [0xf2f1],
                     emit_legacy_reg_rm_instruction_with_i16 [emit_u16(0xf2f1)] [-3343],
                     emit_legacy_reg_rm_instruction_with_4ₓu8 [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                    emit_legacy_reg_rm_instruction_with_4ₓi8 [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                     emit_legacy_reg_rm_instruction_with_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                     emit_legacy_reg_rm_instruction_with_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                 𝗋𝖾𝗀,
@@ -274,7 +275,15 @@ fn test_emit_legacy_instruction_sanity() {
             𝖛𝖊𝖗𝖎𝖋𝖞_𝖊𝖒𝖎𝖙𝖙𝖊𝖗!(
                 emit_legacy_reg_rm_instruction_with_rex8,
                 [   emit_legacy_reg_rm_instruction_with_rex8_and_u8 [emit_u8(0xf1)] [0xf1],
-                    emit_legacy_reg_rm_instruction_with_rex8_and_i8 [emit_u8(0xf1)] [-15]],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_i8 [emit_u8(0xf1)] [-15],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_2ₓu8 [emit_u16(0xf2f1)] [0xf1, 0xf2],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_2ₓi8 [emit_u16(0xf2f1)] [-15, -14],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_u16 [emit_u16(0xf2f1)] [0xf2f1],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_i16 [emit_u16(0xf2f1)] [-3343],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_4ₓu8 [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_4ₓi8 [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                 𝗋𝖾𝗀,
                 𝗋𝗆
             );
@@ -287,6 +296,7 @@ fn test_emit_legacy_instruction_sanity() {
                     emit_legacy_reg_rm_instruction_with_rexw_and_u16 [emit_u16(0xf2f1)] [0xf2f1],
                     emit_legacy_reg_rm_instruction_with_rexw_and_i16 [emit_u16(0xf2f1)] [-3343],
                     emit_legacy_reg_rm_instruction_with_rexw_and_4ₓu8 [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                    emit_legacy_reg_rm_instruction_with_rexw_and_4ₓi8 [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                     emit_legacy_reg_rm_instruction_with_rexw_and_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                     emit_legacy_reg_rm_instruction_with_rexw_and_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                 𝗋𝖾𝗀,
@@ -310,6 +320,8 @@ fn test_emit_legacy_instruction_sanity() {
                                 emit_legacy_reg_address_8086_memory_instruction_with_i16 [emit_u16(0xf2f1)] [-3343],
                                 emit_legacy_reg_address_8086_memory_instruction_with_4ₓu8
                                     [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                                emit_legacy_reg_address_8086_memory_instruction_with_4ₓi8
+                                    [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                                 emit_legacy_reg_address_8086_memory_instruction_with_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                                 emit_legacy_reg_address_8086_memory_instruction_with_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                             𝗋𝖾𝗀,
@@ -337,6 +349,8 @@ fn test_emit_legacy_instruction_sanity() {
                                     emit_legacy_reg_address_80386_memory_instruction_with_i16 [emit_u16(0xf2f1)] [-3343],
                                     emit_legacy_reg_address_80386_memory_instruction_with_4ₓu8
                                         [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                                    emit_legacy_reg_address_80386_memory_instruction_with_4ₓi8
+                                        [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                                     emit_legacy_reg_address_80386_memory_instruction_with_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                                     emit_legacy_reg_address_80386_memory_instruction_with_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                                 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,
@@ -369,6 +383,8 @@ fn test_emit_legacy_instruction_sanity() {
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i16 [emit_u16(0xf2f1)] [-3343],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_4ₓu8
                                         [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_4ₓi8
+                                        [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                                 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,
@@ -378,7 +394,17 @@ fn test_emit_legacy_instruction_sanity() {
                             𝖛𝖊𝖗𝖎𝖋𝖞_𝖊𝖒𝖎𝖙𝖙𝖊𝖗!(
                                 emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8,
                                 [   emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_u8 [emit_u8(0xf1)] [0xf1],
-                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i8 [emit_u8(0xf1)] [-15]],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i8 [emit_u8(0xf1)] [-15],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_2ₓu8 [emit_u16(0xf2f1)] [0xf1, 0xf2],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_2ₓi8 [emit_u16(0xf2f1)] [-15, -14],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_u16 [emit_u16(0xf2f1)] [0xf2f1],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i16 [emit_u16(0xf2f1)] [-3343],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_4ₓu8
+                                        [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_4ₓi8
+                                        [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                                 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,
                                 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,
                                 𝗋𝖾𝗀,
@@ -393,6 +419,8 @@ fn test_emit_legacy_instruction_sanity() {
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i16 [emit_u16(0xf2f1)] [-3343],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_4ₓu8
                                         [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                                    emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_4ₓi8
+                                        [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                                     emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],
                                 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,
