@@ -3528,7 +3528,7 @@ impl super::𝗶𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻::𝒐𝒑�
 // Thus we can be sure that we can use that value safely and we can verify correctness with an appropriate test.
 // Note: we provide _𝔡𝔲𝔪𝔪𝔶{0,1,8,9,11,13,15} members in test configuration to ensure that change in representation wouldn't lead to
 // “undefined behavior”. Function into_address_8086_disctiminant doesn't produce these and tests verify that.
-#[cfg(not(test))]
+#[cfg(all(not(test),not(miri)))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[allow(dead_code)] // Because we are using unsafe to produce variants clippy could't see that and complains.
@@ -3545,7 +3545,7 @@ pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦�
     𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 14,
 }
 
-#[cfg(test)]
+#[cfg(all(test,not(miri)))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[repr(i8)]
@@ -3568,6 +3568,70 @@ pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦�
     _𝔡𝔲𝔪𝔪𝔶15 = 15,
 }
 
+#[cfg(all(not(test),miri))]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[allow(non_camel_case_types)]
+#[allow(dead_code)] // Because we are using unsafe to produce variants clippy could't see that and complains.
+#[repr(i8)]
+pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭 {
+    𝔟𝔭_𝔫𝔬𝔫𝔢 = 5,
+    𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 6,
+    𝔟𝔵_𝔫𝔬𝔫𝔢 = 7,
+    𝔟𝔭_𝔰𝔦 = 9,
+    𝔫𝔬𝔫𝔢_𝔰𝔦 = 10,
+    𝔟𝔵_𝔰𝔦 = 11,
+    𝔟𝔭_𝔡𝔦 = 13,
+    𝔫𝔬𝔫𝔢_𝔡𝔦 = 14,
+    𝔟𝔵_𝔡𝔦 = 15,
+}
+
+#[cfg(all(test,miri))]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[allow(non_camel_case_types)]
+#[repr(i8)]
+pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭 {
+    _𝔡𝔲𝔪𝔪𝔶0 = 0,
+    _𝔡𝔲𝔪𝔪𝔶1 = 1,
+    _𝔡𝔲𝔪𝔪𝔶2 = 2,
+    _𝔡𝔲𝔪𝔪𝔶3 = 3,
+    _𝔡𝔲𝔪𝔪𝔶4 = 4,
+    𝔟𝔭_𝔫𝔬𝔫𝔢 = 5,
+    𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 6,
+    𝔟𝔵_𝔫𝔬𝔫𝔢 = 7,
+    _𝔡𝔲𝔪𝔪𝔶8 = 8,
+    𝔟𝔭_𝔰𝔦 = 9,
+    𝔫𝔬𝔫𝔢_𝔰𝔦 = 10,
+    𝔟𝔵_𝔰𝔦 = 11,
+    _𝔡𝔲𝔪𝔪𝔶12 = 12,
+    𝔟𝔭_𝔡𝔦 = 13,
+    𝔫𝔬𝔫𝔢_𝔡𝔦 = 14,
+    𝔟𝔵_𝔡𝔦 = 15,
+}
+
+#[cfg(not(miri))]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_base: u8 = 0b0110;
+
+#[cfg(not(miri))]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_index: u8 = 0b1001;
+
+#[cfg(not(miri))]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_shift: u8 = 0;
+
+#[cfg(miri)]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_base: u8 = 0b0011;
+
+#[cfg(miri)]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_index: u8 = 0b0011;
+
+#[cfg(miri)]
+#[allow(non_upper_case_globals)]
+const into_address_8086_discriminant_shift: u8 = 2;
+
 pub(crate) fn into_address_8086_discriminant(
     𝖻𝖺𝗌𝖾: Option<𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐛𝐚𝐬𝐞_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ>,
     𝗂𝗇𝖽𝖾𝗑: Option<𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ>,
@@ -3580,13 +3644,19 @@ pub(crate) fn into_address_8086_discriminant(
     };
     unsafe {
         core::mem::transmute::<u8, 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭>(
-            ((𝖻𝖺𝗌𝖾 & 0b110) | (𝗂𝗇𝖽𝖾𝗑 & 0b1001)) as u8,
+            (((𝗂𝗇𝖽𝖾𝗑 & into_address_8086_discriminant_index) << into_address_8086_discriminant_shift) |
+             (𝖻𝖺𝗌𝖾 & into_address_8086_discriminant_base)) as u8,
         )
     }
 }
 
+#[cfg(not(miri))]
 #[allow(non_upper_case_globals)]
 pub(crate) const 𝔞𝔡𝔡𝔯𝔢𝔰𝔰_8086_𝔡𝔦𝔰𝔠𝔯𝔦𝔪𝔦𝔫𝔞𝔫𝔱_𝔱𝔬_𝔪𝔬𝔡𝔯𝔪: [u8; 16] = [0, 0, 0, 1, 2, 3, 4, 5, 0, 0, 7, 0, 6, 0, 6, 0];
+
+#[cfg(miri)]
+#[allow(non_upper_case_globals)]
+pub(crate) const 𝔞𝔡𝔡𝔯𝔢𝔰𝔰_8086_𝔡𝔦𝔰𝔠𝔯𝔦𝔪𝔦𝔫𝔞𝔫𝔱_𝔱𝔬_𝔪𝔬𝔡𝔯𝔪: [u8; 16] = [0, 0, 0, 0, 0, 6, 6, 7, 0, 2, 4, 0, 0, 3, 5, 1];
 
 #[test]
 fn test_into_address_8086_discriminant() {
