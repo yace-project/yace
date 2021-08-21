@@ -14,10 +14,16 @@
 
 #![allow(uncommon_codepoints)]
 #![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
 
 extern crate proc_macro;
 
+#[macro_use]
+extern crate maplit;
+
+use lazy_static::lazy_static;
 use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
+use sqlx::Connection;
 
 // Note: the use of that macro is a bit unusial. It works like this:
 //     𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! {
@@ -276,6 +282,10 @@ fn marker_is_compatible(
     marker: &str,
     attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
 ) -> (Option<bool>, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬) {
+    if 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.as_str() == "qqq" {
+        println!("Oops");
+    }
+    //println!("{:?}\n", *𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬);
     match marker {
         "ℜ16" => (Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16)), attributes),
         "ℜ32" => (Some(attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(32)), attributes),
@@ -309,4 +319,46 @@ fn marker_is_compatible(
         "Χ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 != Some(true)), attributes),
         _ => (None, attributes),
     }
+}
+
+lazy_static! {
+    static ref 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: String = get_instrution_info();
+    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+        "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
+        "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg64" => vec![],
+        "reg/acc8" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
+        "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg/acc64" => vec![],
+    };
+    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+        "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
+        "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg64" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ"],
+        "reg/acc8" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
+        "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg/acc64" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ"],
+    };
+}
+
+#[tokio::main]
+async fn get_instrution_info() -> String {
+    let root_path = std::env::current_dir().expect("Obtaining crate root path");
+    let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
+    // Note: during regular build root_path points to the yace workspace root, but in doctests
+    // we get nested crate root.  Try to access both paths.
+    let database_url = format!("sqlite:{}/test.db", root_path);
+    let database_url_fallback = format!("sqlite:{}/../test.db", root_path);
+    let _pool = if let Ok(pool) = sqlx::SqliteConnection::connect(database_url.as_str()).await {
+        pool
+    } else {
+        sqlx::SqliteConnection::connect(database_url_fallback.as_str())
+            .await
+            .expect("Failed to connect to test.db database")
+    };
+    root_path.to_string()
 }
