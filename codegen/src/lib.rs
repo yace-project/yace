@@ -14,10 +14,17 @@
 
 #![allow(uncommon_codepoints)]
 #![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
 
 extern crate proc_macro;
 
+#[macro_use]
+extern crate maplit;
+
+use futures::TryStreamExt;
+use lazy_static::lazy_static;
 use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
+use sqlx::{Connection, Row};
 
 // Note: the use of that macro is a bit unusial. It works like this:
 //     𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! {
@@ -251,8 +258,18 @@ fn filter_x86_markers_iterable(
                 }
                 _ => output.extend([unwrapped_token, token]),
             }
-        } else if let TokenTree::Ident(_) = token {
-            last_token = Some(token)
+        } else if let TokenTree::Ident(ident) = token {
+            if ident.to_string() != "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" {
+                last_token = Some(TokenTree::Ident(ident))
+            } else {
+                let additional_info: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64) {
+                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.0.parse().unwrap()
+                } else {
+                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.1.parse().unwrap()
+                };
+                output.extend(additional_info);
+                last_token = None
+            }
         } else if let TokenTree::Group(mut data_group_to_process) = token {
             output.extend([filter_x86_markers_group(&mut data_group_to_process, attributes)])
         } else {
@@ -309,4 +326,77 @@ fn marker_is_compatible(
         "Χ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 != Some(true)), attributes),
         _ => (None, attributes),
     }
+}
+
+lazy_static! {
+    static ref 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: (String, String) = get_instrution_info();
+    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+        "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
+        "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg64" => vec![],
+        "reg/acc8" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
+        "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg/acc64" => vec![],
+    };
+    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+        "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
+        "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg64" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ"],
+        "reg/acc8" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
+        "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
+        "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
+        "reg/acc64" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ"],
+    };
+        
+}
+
+#[tokio::main]
+async fn get_instrution_info() -> (String, String) {
+    let root_path = std::env::current_dir().expect("Obtaining crate root path");
+    let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
+    // Note: during regular build root_path points to the yace workspace root, but in doctests
+    // we get nested crate root.  Try to access both paths.
+    let database_url = format!("sqlite:{}/test.db", root_path);
+    let database_url_fallback = format!("sqlite:{}/../test.db", root_path);
+    let mut pool = if let Ok(pool) = sqlx::SqliteConnection::connect(database_url.as_str()).await {
+        pool
+    } else {
+        sqlx::SqliteConnection::connect(database_url_fallback.as_str())
+            .await
+            .expect("Failed to connect to test.db database")
+    };
+    let mut rows = sqlx::query("SELECT * FROM instructions")
+        .fetch(&mut pool);
+        let mut instruction_info_legacy = Vec::new();
+        let mut instruction_info_x64 = Vec::new();
+        while let Some (row) = rows.try_next().await.expect("Heh") {
+        let instruction_name: &str =row.try_get("instruction_name").expect("whatever");
+        let instruction_argument0: &str =row.try_get("instruction_argument0").expect("whatever");
+        let instruction_argument1: &str =row.try_get("instruction_argument1").expect("whatever");
+        if let Some(instruction_argument_cases0) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument0) {
+            for instruction_argument_case0 in instruction_argument_cases0 {
+                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument1) {
+                    for instruction_argument_case1 in instruction_argument_cases1 {
+                        instruction_info_legacy.push(format!("{}_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒊𝒎𝒑𝒍𝒆𝒎𝒆𝒏𝒕𝒂𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
+                    }
+                }
+            }
+        }
+        if let Some(instruction_argument_cases0) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64.get(instruction_argument0) {
+            for instruction_argument_case0 in instruction_argument_cases0 {
+                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64.get(instruction_argument1) {
+                    for instruction_argument_case1 in instruction_argument_cases1 {
+                        if (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ") &&
+                           (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ") {
+                            instruction_info_x64.push(format!("{}_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒊𝒎𝒑𝒍𝒆𝒎𝒆𝒏𝒕𝒂𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    (instruction_info_legacy.join(" + "), instruction_info_x64.join(" + "))
 }
