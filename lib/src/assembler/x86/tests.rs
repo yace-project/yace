@@ -88,8 +88,6 @@ fn test_add_𝔞𝔩_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_32ᵇⁱᵗ_𝔢𝔰𝔭_𝔢�
 
 #[test]
 fn test_add_𝔞𝔩_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_64ᵇⁱᵗ_𝔢𝔰𝔭_𝔢𝔟𝔭() {
-    type xxx = i8;
-    let x: xxx = 1;
     type 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_64ᵇⁱᵗ =
         𝐛𝐚𝐬𝐢𝐜_𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝔞𝔡𝔡𝔯64_𝔡𝔞𝔱𝔞32<'static, 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫>;
     let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
@@ -282,7 +280,7 @@ fn test_emit_legacy_instruction_sanity() {
                     emit_legacy_reg_rm_instruction_with_rex8_and_2ₓi8 [emit_u16(0xf2f1)] [-15, -14],
                     emit_legacy_reg_rm_instruction_with_rex8_and_u16 [emit_u16(0xf2f1)] [0xf2f1],
                     emit_legacy_reg_rm_instruction_with_rex8_and_i16 [emit_u16(0xf2f1)] [-3343],
-                    emit_legacy_reg_rm_instruction_with_r ex8_and_4ₓu8 [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
+                    emit_legacy_reg_rm_instruction_with_rex8_and_4ₓu8 [emit_u32(0xf4f3f2f1)] [0xf1, 0xf2, 0xf3, 0xf4],
                     emit_legacy_reg_rm_instruction_with_rex8_and_4ₓi8 [emit_u32(0xf4f3f2f1)] [-15, -14, -13, -12],
                     emit_legacy_reg_rm_instruction_with_rex8_and_u32 [emit_u32(0xf4f3f2f1)] [0xf4f3f2f1],
                     emit_legacy_reg_rm_instruction_with_rex8_and_i32 [emit_u32(0xf4f3f2f1)] [-185339151]],

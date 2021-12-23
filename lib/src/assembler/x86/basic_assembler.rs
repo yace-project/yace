@@ -27,7 +27,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
         };
         ($𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮:ident {$𝓲𝓷𝓽_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷:expr} {$𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷:expr} {$𝓲𝓷𝓽_𝓼𝓪𝓯𝓮𝓽𝔂_𝓬𝓱𝓮𝓬𝓴:expr}) => {
-            impl core::convert::TryFrom<i8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<i8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -45,7 +45,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                     return ($𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i8) as i8;
                 }
             }
-            impl core::convert::TryFrom<u8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<u8> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -64,7 +64,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
 
-            impl core::convert::TryFrom<i16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<i16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -82,7 +82,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                     return ($𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i16) as i16;
                 }
             }
-            impl core::convert::TryFrom<u16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<u16> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -101,7 +101,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
 
-            impl core::convert::TryFrom<i32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<i32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -119,7 +119,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                     return ($𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i32) as i32;
                 }
             }
-            impl core::convert::TryFrom<u32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<u32> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -138,7 +138,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
 
-            impl core::convert::TryFrom<i64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<i64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -156,7 +156,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                     return ($𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as i64) as i64;
                 }
             }
-            impl core::convert::TryFrom<u64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<u64> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -176,7 +176,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             }
 
             #[cfg(has_i128)]
-            impl core::convert::TryFrom<i128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<i128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -196,7 +196,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
             #[cfg(has_i128)]
-            impl core::convert::TryFrom<u128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<u128> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -216,7 +216,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
 
-            impl core::convert::TryFrom<isize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<isize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -234,7 +234,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                     return ($𝓽𝔂𝓹𝓮_𝓬𝓸𝓷𝓿𝓮𝓻𝓼𝓲𝓸𝓷)(value as isize) as isize;
                 }
             }
-            impl core::convert::TryFrom<usize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
+            impl TryFrom<usize> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 {
                 type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                 #[allow(clippy::erasing_op,clippy::redundant_closure_call)]
                 #[inline(always)]
@@ -253,8 +253,8 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
                 }
             }
 
-            impl<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> core::convert::TryFrom<core::num::Wrapping<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 where $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮: core::convert::TryFrom<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> {
-                type Error = <$𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 as core::convert::TryFrom<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>>::Error;
+            impl<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> TryFrom<core::num::Wrapping<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>> for $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 where $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮: TryFrom<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> {
+                type Error = <$𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮 as TryFrom<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>>::Error;
                 #[inline(always)]
                 fn try_from(value: core::num::Wrapping<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>) -> Result<Self, Self::Error> {
                     Self::try_from(value.0)
@@ -319,7 +319,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                  )*
 
                 $(
-                    impl core::convert::TryFrom<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
+                    impl TryFrom<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮> for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
                         // The only possible error here can be is “register doesn't belong to specific register class”.
                         //
                         // Returning Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(())) is enough to pass that infomation but makes Result smaller
@@ -339,7 +339,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                  )*
 
                 #[cfg(test)]
-                impl core::convert::TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
+                impl TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
                     type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
                     fn try_from(value: i8) -> Result<Self, Self::Error> {
                         match 𝗲𝗻𝘂𝗺_𝘁𝗲𝘀𝘁𝘀::adjust_int_value(value, stringify!($𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮)) {
@@ -381,7 +381,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
 
                 $(
                     #[cfg(test)]
-                    impl core::convert::TryFrom<𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮>> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
+                    impl TryFrom<𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮>> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮> {
                         // The only possible error here can be is “register doesn't belong to specific register class”.
                         //
                         // Returning Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(())) is enough to pass that infomation but makes Result smaller
@@ -423,10 +423,8 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                             let mut successfully_converted = 0;
                             for value in i8::MIN..=i8::MAX {
                                 if let Ok(value) = 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕::<$𝓾𝓷𝓼𝓪𝓯𝓮_𝓮𝓷𝓾𝓶_𝓽𝔂𝓹𝓮>::all_from(value) {
-                                    let converted_safely = core::convert::TryInto::<𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕::<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>>::try_into(value)
-                                        .ok()
-                                        .map(|value| value.0);
-                                    let converted_unsafely = core::convert::TryInto::<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>::try_into(value.0).ok();
+                                    let converted_safely = value.try_into().ok().map(|value: 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<$𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮>| value.0);
+                                    let converted_unsafely = value.0.try_into().ok();
                                     assert_eq!(converted_safely, converted_unsafely);
                                     if converted_safely.is_some() {
                                         successfully_converted += 1
@@ -3436,7 +3434,7 @@ impl From<super::𝗶𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻::𝐮�
 }
 
 #[cfg(test)]
-impl core::convert::TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞> {
+impl TryFrom<i8> for 𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞> {
     type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
     #[allow(dead_code)]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
@@ -3528,47 +3526,7 @@ impl super::𝗶𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻::𝒐𝒑�
 // Thus we can be sure that we can use that value safely and we can verify correctness with an appropriate test.
 // Note: we provide _𝔡𝔲𝔪𝔪𝔶{0,1,8,9,11,13,15} members in test configuration to ensure that change in representation wouldn't lead to
 // “undefined behavior”. Function into_address_8086_disctiminant doesn't produce these and tests verify that.
-#[cfg(all(not(test),not(miri)))]
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[allow(non_camel_case_types)]
-#[allow(dead_code)] // Because we are using unsafe to produce variants clippy could't see that and complains.
-#[repr(i8)]
-pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭 {
-    𝔟𝔵_𝔰𝔦 = 2,
-    𝔟𝔵_𝔡𝔦 = 3,
-    𝔟𝔭_𝔰𝔦 = 4,
-    𝔟𝔭_𝔡𝔦 = 5,
-    𝔫𝔬𝔫𝔢_𝔰𝔦 = 6,
-    𝔫𝔬𝔫𝔢_𝔡𝔦 = 7,
-    𝔟𝔵_𝔫𝔬𝔫𝔢 = 10,
-    𝔟𝔭_𝔫𝔬𝔫𝔢 = 12,
-    𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 14,
-}
-
-#[cfg(all(test,not(miri)))]
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[allow(non_camel_case_types)]
-#[repr(i8)]
-pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭 {
-    _𝔡𝔲𝔪𝔪𝔶0 = 0,
-    _𝔡𝔲𝔪𝔪𝔶1 = 1,
-    𝔟𝔵_𝔰𝔦 = 2,
-    𝔟𝔵_𝔡𝔦 = 3,
-    𝔟𝔭_𝔰𝔦 = 4,
-    𝔟𝔭_𝔡𝔦 = 5,
-    𝔫𝔬𝔫𝔢_𝔰𝔦 = 6,
-    𝔫𝔬𝔫𝔢_𝔡𝔦 = 7,
-    _𝔡𝔲𝔪𝔪𝔶8 = 8,
-    _𝔡𝔲𝔪𝔪𝔶9 = 9,
-    𝔟𝔵_𝔫𝔬𝔫𝔢 = 10,
-    _𝔡𝔲𝔪𝔪𝔶11 = 11,
-    𝔟𝔭_𝔫𝔬𝔫𝔢 = 12,
-    _𝔡𝔲𝔪𝔪𝔶13 = 13,
-    𝔫𝔬𝔫𝔢_𝔫𝔬𝔫𝔢 = 14,
-    _𝔡𝔲𝔪𝔪𝔶15 = 15,
-}
-
-#[cfg(all(not(test),miri))]
+#[cfg(all(not(test)))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[allow(dead_code)] // Because we are using unsafe to produce variants clippy could't see that and complains.
@@ -3585,7 +3543,7 @@ pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦�
     𝔟𝔵_𝔡𝔦 = 15,
 }
 
-#[cfg(all(test,miri))]
+#[cfg(all(test))]
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[repr(i8)]
@@ -3608,27 +3566,12 @@ pub(crate) enum 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦�
     𝔟𝔵_𝔡𝔦 = 15,
 }
 
-#[cfg(not(miri))]
-#[allow(non_upper_case_globals)]
-const into_address_8086_discriminant_base: u8 = 0b0110;
-
-#[cfg(not(miri))]
-#[allow(non_upper_case_globals)]
-const into_address_8086_discriminant_index: u8 = 0b1001;
-
-#[cfg(not(miri))]
-#[allow(non_upper_case_globals)]
-const into_address_8086_discriminant_shift: u8 = 0;
-
-#[cfg(miri)]
 #[allow(non_upper_case_globals)]
 const into_address_8086_discriminant_base: u8 = 0b0011;
 
-#[cfg(miri)]
 #[allow(non_upper_case_globals)]
 const into_address_8086_discriminant_index: u8 = 0b0011;
 
-#[cfg(miri)]
 #[allow(non_upper_case_globals)]
 const into_address_8086_discriminant_shift: u8 = 2;
 
@@ -3650,11 +3593,6 @@ pub(crate) fn into_address_8086_discriminant(
     }
 }
 
-#[cfg(not(miri))]
-#[allow(non_upper_case_globals)]
-pub(crate) const 𝔞𝔡𝔡𝔯𝔢𝔰𝔰_8086_𝔡𝔦𝔰𝔠𝔯𝔦𝔪𝔦𝔫𝔞𝔫𝔱_𝔱𝔬_𝔪𝔬𝔡𝔯𝔪: [u8; 16] = [0, 0, 0, 1, 2, 3, 4, 5, 0, 0, 7, 0, 6, 0, 6, 0];
-
-#[cfg(miri)]
 #[allow(non_upper_case_globals)]
 pub(crate) const 𝔞𝔡𝔡𝔯𝔢𝔰𝔰_8086_𝔡𝔦𝔰𝔠𝔯𝔦𝔪𝔦𝔫𝔞𝔫𝔱_𝔱𝔬_𝔪𝔬𝔡𝔯𝔪: [u8; 16] = [0, 0, 0, 0, 0, 6, 6, 7, 0, 2, 4, 0, 0, 3, 5, 1];
 
