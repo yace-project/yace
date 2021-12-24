@@ -380,7 +380,7 @@ async fn get_instrution_info() -> (String, String) {
             for instruction_argument_case0 in instruction_argument_cases0 {
                 if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument1) {
                     for instruction_argument_case1 in instruction_argument_cases1 {
-                        instruction_info_legacy.push(format!("{}_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒊𝒎𝒑𝒍𝒆𝒎𝒆𝒏𝒕𝒂𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
+                        instruction_info_legacy.push(format!("{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
                     }
                 }
             }
@@ -391,7 +391,7 @@ async fn get_instrution_info() -> (String, String) {
                     for instruction_argument_case1 in instruction_argument_cases1 {
                         if (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ") &&
                            (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ") {
-                            instruction_info_x64.push(format!("{}_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒊𝒎𝒑𝒍𝒆𝒎𝒆𝒏𝒕𝒂𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
+                            instruction_info_x64.push(format!("{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", instruction_name, instruction_argument_case0, instruction_argument_case1));
                         }
                     }
                 }
