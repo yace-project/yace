@@ -90,7 +90,7 @@ We are repurposing them to help us distinguish different entities of C++.
 
 ## The define Guard ## {#The_define_Guard}
 
-All header files should have #define guards to prevent multiple inclusion. The format of the symbol name should be
+All header files should have \#define guards to prevent multiple inclusion. The format of the symbol name should be
 `“𝔓ℜ𝔒𝔍𝔈ℭ𝔗”_“𝔓𝔄𝔗ℌ”_“𝔉ℑ𝔏𝔈”_ℌ`. Note: we are using ALL_CAPS — and not just ALL_CAPS, but
 [fraktur-style](https://en.wikipedia.org/wiki/Fraktur)
 [𝔄𝔏𝔏 ℭ𝔄𝔓𝔖](https://en.wikipedia.org/wiki/Mathematical_Alphanumeric_Symbols#Latin_letters). This makes include guard different from

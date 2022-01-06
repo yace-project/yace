@@ -22,7 +22,6 @@ extern crate proc_macro;
 extern crate maplit;
 
 use futures::TryStreamExt;
-use lazy_static::lazy_static;
 use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
 use sqlx::{Connection, Row};
 
@@ -537,9 +536,11 @@ fn marker_is_compatible<'ᵉˣᵗʳᵃ>(
     }
 }
 
-lazy_static! {
-    static ref 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: (String, String) = get_instrution_info();
-    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: once_cell::sync::Lazy<(String, String)> = once_cell::sync::Lazy::new(get_instrution_info);
+static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: once_cell::sync::Lazy<
+    std::collections::HashMap<&'static str, std::vec::Vec<&'static str>>,
+> = once_cell::sync::Lazy::new(|| {
+    hashmap! {
         "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
         "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
         "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
@@ -548,8 +549,12 @@ lazy_static! {
         "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
         "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
         "reg/acc64" => vec![],
-    };
-    static ref 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: std::collections::HashMap<&'static str, std::vec::Vec<&'static str>> = hashmap! {
+    }
+});
+static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: once_cell::sync::Lazy<
+    std::collections::HashMap<&'static str, std::vec::Vec<&'static str>>,
+> = once_cell::sync::Lazy::new(|| {
+    hashmap! {
         "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
         "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
         "reg32" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
@@ -558,8 +563,8 @@ lazy_static! {
         "reg/acc16" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
         "reg/acc32" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ"],
         "reg/acc64" => vec!["𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ"],
-    };
-}
+    }
+});
 
 #[tokio::main]
 async fn get_instrution_info() -> (String, String) {
@@ -576,30 +581,45 @@ async fn get_instrution_info() -> (String, String) {
             .await
             .expect("Failed to connect to test.db database")
     };
-    let mut rows = sqlx::query("SELECT * FROM instructions")
-        .fetch(&mut pool);
-        let mut instruction_info_legacy = Vec::new();
-        let mut instruction_info_x64 = Vec::new();
-        while let Some (row) = rows.try_next().await.expect("Heh") {
-        let instruction_name: &str =row.try_get("instruction_name").expect("whatever");
-        let instruction_argument0: &str =row.try_get("instruction_argument0").expect("whatever");
-        let instruction_argument1: &str =row.try_get("instruction_argument1").expect("whatever");
-        if let Some(instruction_argument_cases0) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument0) {
+    let mut rows = sqlx::query("SELECT * FROM instructions").fetch(&mut pool);
+    let mut instruction_info_legacy = Vec::new();
+    let mut instruction_info_x64 = Vec::new();
+    while let Some(row) = rows.try_next().await.expect("Heh") {
+        let instruction_name: &str = row.try_get("instruction_name").expect("whatever");
+        let instruction_argument0: &str = row.try_get("instruction_argument0").expect("whatever");
+        let instruction_argument1: &str = row.try_get("instruction_argument1").expect("whatever");
+        if let Some(instruction_argument_cases0) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument0)
+        {
             for instruction_argument_case0 in instruction_argument_cases0 {
-                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument1) {
+                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶.get(instruction_argument1)
+                {
                     for instruction_argument_case1 in instruction_argument_cases1 {
-                        instruction_info_legacy.push(format!("{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name), instruction_argument_case0, instruction_argument_case1));
+                        instruction_info_legacy.push(format!(
+                            "{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>",
+                            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name),
+                            instruction_argument_case0,
+                            instruction_argument_case1
+                        ));
                     }
                 }
             }
         }
         if let Some(instruction_argument_cases0) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64.get(instruction_argument0) {
             for instruction_argument_case0 in instruction_argument_cases0 {
-                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64.get(instruction_argument1) {
+                if let Some(instruction_argument_cases1) = 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64.get(instruction_argument1)
+                {
                     for instruction_argument_case1 in instruction_argument_cases1 {
-                        if (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ") &&
-                           (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ" || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ") {
-                            instruction_info_x64.push(format!("{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>", 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name), instruction_argument_case0, instruction_argument_case1));
+                        if (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"
+                            || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ")
+                            && (*instruction_argument_case0 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ"
+                                || *instruction_argument_case1 != "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ")
+                        {
+                            instruction_info_x64.push(format!(
+                                "{}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(Self::{}, Self::{})>",
+                                𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name),
+                                instruction_argument_case0,
+                                instruction_argument_case1
+                            ));
                         }
                     }
                 }
