@@ -18,12 +18,14 @@
 
 extern crate proc_macro;
 
-#[macro_use]
-extern crate maplit;
-
-use futures::TryStreamExt;
-use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
-use sqlx::{Connection, Row};
+use {
+    futures::{StreamExt, TryStreamExt},
+    indoc::indoc,
+    maplit::hashmap,
+    once_cell::sync::Lazy,
+    proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree},
+    std::collections::HashMap,
+};
 
 // Note: the use of that macro is a bit unusial. It works like this:
 //     𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! {
@@ -54,36 +56,30 @@ use sqlx::{Connection, Row};
 #[proc_macro]
 pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items: TokenStream) -> TokenStream {
     let mut iter = items.into_iter();
-    let macro_name = if let Some(TokenTree::Ident(macro_name)) = iter.next() {
-        macro_name
-    } else {
+    let Some(TokenTree::Ident(macro_name)) = iter.next() else {
         return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find the name of nested macro.\");"
             .parse()
             .unwrap();
     };
-    let exclamation_mark = if let Some(TokenTree::Punct(exclamation_mark)) = iter.next() {
-        if exclamation_mark.as_char() == '!' {
-            exclamation_mark
-        } else {
-            return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find ! after the name of nested macro.\");"
-                .parse()
-                .unwrap();
-        }
-    } else {
+
+    let Some(TokenTree::Punct(exclamation_mark)) = iter.next() else {
         return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find ! after the name of nested macro.\");"
             .parse()
             .unwrap();
     };
-    let main_group = if let Some(TokenTree::Group(main_group)) = iter.next() {
-        if let Delimiter::Brace = main_group.delimiter() {
-            main_group
-        } else {
-            return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — main group should use braces.\");"
-                .parse()
-                .unwrap();
-        }
-    } else {
+    if exclamation_mark.as_char() != '!' {
+        return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find ! after the name of nested macro.\");"
+            .parse()
+            .unwrap();
+    }
+
+    let Some(TokenTree::Group(main_group)) = iter.next() else {
         return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find main group to process.\");"
+            .parse()
+            .unwrap();
+    };
+    let Delimiter::Brace = main_group.delimiter() else {
+        return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — main group should use braces.\");"
             .parse()
             .unwrap();
     };
@@ -95,16 +91,13 @@ pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items:
 
     let mut main_group_iter = main_group.stream().into_iter();
     let mut attributes_iter = main_group_iter.clone();
-    let attributes_group = if let Some(TokenTree::Group(attributes_group)) = attributes_iter.next() {
-        if let Delimiter::Bracket = attributes_group.delimiter() {
-            attributes_group
-        } else {
-            return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — attributes_group group should use brackets.\");"
-                .parse()
-                .unwrap();
-        }
-    } else {
+    let Some(TokenTree::Group(attributes_group)) = attributes_iter.next() else {
         return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't find attributes group to process.\");"
+            .parse()
+            .unwrap();
+    };
+    let Delimiter::Bracket = attributes_group.delimiter() else {
+        return "compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — attributes_group group should use brackets.\");"
             .parse()
             .unwrap();
     };
@@ -127,15 +120,28 @@ pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items:
         Err(err) => return err.parse().unwrap(),
     };
 
-    let mut arguments = TokenStream::new();
-    filter_x86_markers_iterable(&mut arguments, &mut main_group_iter, attributes);
+    let mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = TokenStream::new();
+    filter_x86_markers_iterable(&mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌, &mut main_group_iter, attributes);
     let mut result = TokenStream::new();
     result.extend([
         TokenTree::Ident(macro_name),
         TokenTree::Punct(exclamation_mark),
-        Into::<TokenTree>::into(Group::new(Delimiter::Brace, arguments)),
+        Into::<TokenTree>::into(Group::new(Delimiter::Brace, 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌)),
     ]);
     result
+}
+
+#[proc_macro]
+pub fn 𝖉𝖊𝖋𝖎𝖓𝖊_𝖆𝖘𝖘𝖊𝖒𝖇𝖑𝖊𝖗_𝖎𝖓𝖘𝖙𝖗𝖚𝖈𝖙𝖎𝖔𝖓𝖘(
+    items: TokenStream,
+) -> TokenStream {
+    let mut iter = items.into_iter();
+    if iter.next().is_some() {
+        return "compile_error!(\"𝖉𝖊𝖋𝖎𝖓𝖊_𝖆𝖘𝖘𝖊𝖒𝖇𝖑𝖊𝖗_𝖎𝖓𝖘𝖙𝖗𝖚𝖈𝖙𝖎𝖔𝖓𝖘! — arguments are not supported.\");"
+            .parse()
+            .unwrap();
+    }
+    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.0.parse().unwrap()
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -159,39 +165,39 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
             𝖺𝗏𝗑𝟧𝟣𝟤: None,
             𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌,
         };
-        let mut process = |identifier: &Ident| -> Option<&'static str> {
+        let mut process = |identifier: &Ident| -> Result<(), &'static str> {
             match identifier.to_string().as_str() {
                 "𝔞𝔡𝔡𝔯16" => {
                     if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(16)
                     }
                 }
                 "𝔞𝔡𝔡𝔯32" => {
                     if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(32)
                     }
                 }
                 "𝔞𝔡𝔡𝔯64" => {
                     if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
                     } else {
                         result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(64)
                     }
                 }
                 "𝔡𝔞𝔱𝔞16" => {
                     if result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
                     } else {
                         result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(16)
                     }
                 }
                 "𝔡𝔞𝔱𝔞32" => {
                     if result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated data size.\");");
                     } else {
                         result.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 = core::num::NonZeroI8::new(32)
                     }
@@ -204,31 +210,26 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
                 }
                 "ₐᵥₓ512" => {
                     if result.𝖺𝗏𝗑𝟧𝟣𝟤.is_some() {
-                        return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated ₐᵥₓ512 marker.\");");
+                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated ₐᵥₓ512 marker.\");");
                     } else {
                         result.𝖺𝗏𝗑𝟧𝟣𝟤 = Some(true)
                     }
                 }
-                _ => return Some("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — unknown token.\");"),
+                _ => return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — unknown token.\");"),
             }
-            None
+            Ok(())
         };
         for token_tree in input {
             match &token_tree {
                 TokenTree::Ident(identifier) => {
-                    if let Some(err) = process(identifier) {
-                        return Err(err);
-                    }
+                    process(identifier)?;
                 }
                 TokenTree::Group(group) if matches!(group.delimiter(), Delimiter::None) => {
                     for token_tree in group.stream().into_iter() {
-                        if let TokenTree::Ident(identifier) = &token_tree {
-                            if let Some(err) = process(identifier) {
-                                return Err(err);
-                            }
-                        } else {
-                            return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — attributes group includes unknown item.\");");
-                        }
+                        let TokenTree::Ident(identifier) = &token_tree else {
+                            return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — attributes group includes unknown item.\");")
+			};
+                        process(identifier)?;
                     }
                 }
                 _ => return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — attributes group includes unknown item.\");"),
@@ -265,14 +266,13 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
             Some(TokenTree::Group(trait_group)) if matches!(trait_group.delimiter(), Delimiter::None) => {
                 let mut trait_iter = trait_group.stream().into_iter();
                 let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = trait_iter.next();
-                if let Some(TokenTree::Ident(_)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 {
-                    if !trait_iter.next().is_none() {
-                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
-                    }
-                    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾
-                } else {
+                let Some(TokenTree::Ident(_)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 else {
                     return Ok(Default::default());
+                };
+                if !trait_iter.next().is_none() {
+                    return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
                 }
+                𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾
             }
             _ => return Ok(Default::default()),
         };
@@ -286,14 +286,13 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
             Some(TokenTree::Group(struct_group)) if matches!(struct_group.delimiter(), Delimiter::None) => {
                 let mut struct_iter = struct_group.stream().into_iter();
                 let 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 = struct_iter.next();
-                if let Some(TokenTree::Ident(_)) = 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 {
-                    if !struct_iter.next().is_none() {
-                        return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
-                    }
-                    𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
-                } else {
+                let Some(TokenTree::Ident(_)) = 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 else {
                     return Ok(Default::default());
+                };
+                if !struct_iter.next().is_none() {
+                    return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
                 }
+                𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
             }
             _ => return Ok(Default::default()),
         };
@@ -320,98 +319,49 @@ fn filter_x86_markers_iterable(
     fn emit_or_expand_token(
         output: &mut impl Extend<TokenTree>, token: TokenTree, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
     ) {
-        if let TokenTree::Ident(ref ident) = token {
-            match ident.to_string().as_str() {
-                "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" => {
-                    let additional_info: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)
-                    {
-                        𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.0.parse().unwrap()
-                    } else {
-                        𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.1.parse().unwrap()
-                    };
-                    output.extend(additional_info)
-                }
-                "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕖𝕣𝕤" => {
-                    if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64) {
-                        let token_stream: TokenStream = format!(
-                            concat!(
-                                "impl Æ 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓 for æ",
-                                "{{type 𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ={};type 𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ={};",
-                                "type 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ={};type 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ={};}}"
-                            ),
-                            if attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
-                                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
-                            } else {
-                                "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>"
-                            },
-                            if attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
-                                "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>"
-                            } else {
-                                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
-                            },
-                            if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
-                                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
-                            } else {
-                                "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
-                            },
-                            if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
-                                "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
-                            } else {
-                                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
-                            }
-                        )
-                        .parse()
-                        .unwrap();
-                        for token in token_stream.into_iter() {
-                            match token {
-                                TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
-                                    if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
-                                    {
-                                        output.extend(𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter())
-                                    }
-                                }
-                                TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
-                                    if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
-                                    {
-                                        output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()])
-                                    }
-                                    if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
-                                    {
-                                        output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter())
-                                    }
-                                }
-                                _ => output.extend([token]),
-                            }
+        let TokenTree::Ident(ref ident) = token else {
+            return output.extend([token])
+        };
+
+        match ident.to_string().as_str() {
+            "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" => {
+                let additional_info: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)
+                {
+                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.1.parse().unwrap()
+                } else {
+                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.2.parse().unwrap()
+                };
+                output.extend(additional_info)
+            }
+            "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕖𝕣𝕤" => {
+                if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64) {
+                    let token_stream: TokenStream = format!(
+                        concat!(
+                            "impl Æ 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓 for æ",
+                            "{{type 𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ={};type 𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ={};",
+                            "type 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ={};type 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ={};}}"
+                        ),
+                        if attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
+                            "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
+                        } else {
+                            "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>"
+                        },
+                        if attributes.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
+                            "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>"
+                        } else {
+                            "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
+                        },
+                        if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
+                            "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
+                        } else {
+                            "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
+                        },
+                        if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(16) {
+                            "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
+                        } else {
+                            "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
                         }
-                    }
-                    let token_stream: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(64)
-                    {
-                        format!(
-                            concat!(
-                                "impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝒂𝒅𝒅_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ ",
-                                "where Self:{1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{",
-                                "type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;",
-                                "type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;",
-                                "fn {0}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->",
-                                "Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{0}_x86_64_mode(arguments)}}}}"
-                            ),
-                            "add",
-                            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾("add")
-                        )
-                    } else {
-                        format!(
-                            concat!(
-                                "impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝒂𝒅𝒅_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ ",
-                                "where Self:{1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{",
-                                "type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;",
-                                "type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;",
-                                "fn {0}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->",
-                                "Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{0}_legacy_mode(arguments)}}}}"
-                            ),
-                            "add",
-                            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾("add")
-                        )
-                    }
+                    )
                     .parse()
                     .unwrap();
                     for token in token_stream.into_iter() {
@@ -419,17 +369,7 @@ fn filter_x86_markers_iterable(
                             TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
                                 if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
                                 {
-                                    let mut previous_token = None;
-                                    for token in 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter() {
-                                        if let Some(previous_token) = previous_token.replace(token) {
-                                            output.extend([previous_token]);
-                                        }
-                                    }
-                                    let token_stream: TokenStream = ",".parse().unwrap();
-                                    output.extend(token_stream.into_iter());
-                                } else {
-                                    let token_stream: TokenStream = "<".parse().unwrap();
-                                    output.extend(token_stream.into_iter());
+                                    output.extend(𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter())
                                 }
                             }
                             TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
@@ -446,10 +386,68 @@ fn filter_x86_markers_iterable(
                         }
                     }
                 }
-                _ => output.extend([token]),
+                let token_stream: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(64) {
+                    format!(
+                        concat!(
+                            "impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝒂𝒅𝒅_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ ",
+                            "where Self:{1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{",
+                            "type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;",
+                            "type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {1}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;",
+                            "fn {0}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->",
+                            "Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{0}_x86_64_mode(arguments)}}}}"
+                        ),
+                        "add",
+                        𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾("add")
+                    )
+                } else {
+                    format!(
+                        concat!(
+                            "impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝒂𝒅𝒅_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ ",
+                            "where Self:{1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{",
+                            "type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;",
+                            "type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {1}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;",
+                            "fn {0}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->",
+                            "Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{0}_legacy_mode(arguments)}}}}"
+                        ),
+                        "add",
+                        𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾("add")
+                    )
+                }
+                .parse()
+                .unwrap();
+                for token in token_stream.into_iter() {
+                    match token {
+                        TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
+                            if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
+                            {
+                                let mut previous_token = None;
+                                for token in 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter() {
+                                    if let Some(previous_token) = previous_token.replace(token) {
+                                        output.extend([previous_token]);
+                                    }
+                                }
+                                let token_stream: TokenStream = ",".parse().unwrap();
+                                output.extend(token_stream.into_iter());
+                            } else {
+                                let token_stream: TokenStream = "<".parse().unwrap();
+                                output.extend(token_stream.into_iter());
+                            }
+                        }
+                        TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
+                            if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
+                            {
+                                output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()])
+                            }
+                            if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
+                            {
+                                output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter())
+                            }
+                        }
+                        _ => output.extend([token]),
+                    }
+                }
             }
-        } else {
-            output.extend([token])
+            _ => output.extend([token]),
         }
     }
     let mut last_token: Option<TokenTree> = None;
@@ -536,10 +534,9 @@ fn marker_is_compatible<'ᵉˣᵗʳᵃ>(
     }
 }
 
-static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: once_cell::sync::Lazy<(String, String)> = once_cell::sync::Lazy::new(get_instrution_info);
-static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: once_cell::sync::Lazy<
-    std::collections::HashMap<&'static str, std::vec::Vec<&'static str>>,
-> = once_cell::sync::Lazy::new(|| {
+static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: Lazy<
+    HashMap<&'static str, std::vec::Vec<&'static str>>,
+> = Lazy::new(|| {
     hashmap! {
         "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ"],
         "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
@@ -551,9 +548,7 @@ static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔩𝔢𝔤𝔞𝔠𝔶: once_
         "reg/acc64" => vec![],
     }
 });
-static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: once_cell::sync::Lazy<
-    std::collections::HashMap<&'static str, std::vec::Vec<&'static str>>,
-> = once_cell::sync::Lazy::new(|| {
+static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: Lazy<HashMap<&'static str, std::vec::Vec<&'static str>>> = Lazy::new(|| {
     hashmap! {
         "reg8" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ"],
         "reg16" => vec!["𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ", "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ"],
@@ -567,13 +562,15 @@ static 𝔱𝔞𝔯𝔤𝔢𝔱𝔰_𝔪𝔞𝔭_𝔵86_64: once_cell::sync::Laz
 });
 
 #[tokio::main]
-async fn get_instrution_info() -> (String, String) {
+async fn get_instrution_info() -> (String, String, String) {
     let root_path = std::env::current_dir().expect("Obtaining crate root path");
     let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
     // Note: during regular build root_path points to the yace workspace root, but in doctests
     // we get nested crate root.  Try to access both paths.
     let database_url = format!("sqlite:{}/test.db", root_path);
     let database_url_fallback = format!("sqlite:{}/../test.db", root_path);
+    use sqlx::Connection;
+    use sqlx::Row;
     let mut pool = if let Ok(pool) = sqlx::SqliteConnection::connect(database_url.as_str()).await {
         pool
     } else {
@@ -626,7 +623,513 @@ async fn get_instrution_info() -> (String, String) {
             }
         }
     }
-    (instruction_info_legacy.join(" + "), instruction_info_x64.join(" + "))
+    let mut connection = get_database_connection().await;
+    let mut assembler_instructions = Vec::new();
+    for assembler_kind in [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64]
+    {
+        let mut instructions_stream = get_insructions_info(&mut connection, assembler_kind);
+        while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
+            let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
+            if (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "rex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit")
+                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("address") && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit")
+                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "rex_register_8bit")
+                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("address"))
+            {
+                continue;
+            }
+
+            let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
+            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
+
+            let process_xiz_version = 'ᵃⁿˢʷᵉʳ: {
+                for argument in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 {
+                    if argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷.is_some() {
+                        break 'ᵃⁿˢʷᵉʳ &[false, true][..];
+                    }
+                }
+                break 'ᵃⁿˢʷᵉʳ &[false][..];
+            };
+
+            let mut arguments_type = Vec::new();
+            let mut arguments_type_xiz = Vec::new();
+            let mut parameters_list = Vec::new();
+            let mut memory_size = None;
+            let mut non_memory_size = None;
+            for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.into_iter().enumerate() {
+                let 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 = argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+                let 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾;
+
+                let operand_size = if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_8bit") {
+                    Some(1)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_16bit") {
+                    Some(2)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_32bit") {
+                    Some(4)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_64bit") {
+                    Some(8)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_128bit") {
+                    Some(16)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_256bit") {
+                    Some(32)
+                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_512bit") {
+                    Some(64)
+                } else {
+                    None
+                };
+
+                let operand_size_target = if 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾.ends_with(">") {
+                    &mut memory_size
+                } else {
+                    &mut non_memory_size
+                };
+
+                if operand_size_target.is_none() || *operand_size_target == operand_size {
+                    *operand_size_target = operand_size;
+                } else {
+                    *operand_size_target = Some(0);
+                }
+
+                arguments_type.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
+                if let Some(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷) = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷
+                {
+                    arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷);
+                } else {
+                    arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
+                }
+
+                if argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 == "implicit" {
+                    parameters_list.push(format!("_parameter{index}"));
+                } else {
+                    parameters_list.push(format!("parameter{index}"));
+                }
+            }
+            let arguments_type = format!("({})", arguments_type.join(","));
+            let arguments_type_xiz = format!("({})", arguments_type_xiz.join(","));
+            let process_unsized_memory = if memory_size.is_some() && memory_size == non_memory_size {
+                &[false, true][..]
+            } else {
+                &[false][..]
+            };
+
+            let parameters_list = parameters_list.join(",");
+            let mut need_extra_trait = false;
+            let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
+            let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = match (assembler_kind, 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
+            {
+                (_, "") => "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞",
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_16bit") => {
+                    need_extra_trait = true;
+                    "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ"
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_32bit") => {
+                    need_extra_trait = true;
+                    "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ"
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_32bit") => {
+                    "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_64bit") => {
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
+                }
+                _ => panic!("Usupported config of address prefixes: {assembler_kind:?} {𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
+            };
+            let 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
+            let (𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑, rexw_prefix) = match (assembler_kind, 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
+            {
+                (_, "") => ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴),
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_16bit") => {
+                    need_extra_trait = true;
+                    ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_32bit") => {
+                    need_extra_trait = true;
+                    ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_16bit") => {
+                    ("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_32bit") => {
+                    ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                }
+                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_64bit") => {
+                    ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴)
+                }
+                _ => panic!("Usupported config of data prefixes: {assembler_kind:?} {𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
+            };
+            let instruction_type = format!(
+                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
+                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                instruction.𝗈𝗉𝖼𝗈𝖽𝖾,
+                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞" // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+            );
+
+            let argument0_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
+            let argument0_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+            let argument1_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
+            let argument1_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+            let (instruction_emit, instruction_trait_for_emit) = match (argument0_sql_operand, argument1_sql_operand) {
+                ("implicit", "immediate") => match (argument1_sql_type, rexw_prefix) {
+                    ("imm8", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[parameter1 as u8])"),
+                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>")
+                    ),
+                    ("imm16", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8])"),
+                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>")
+                    ),
+                    ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
+                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
+                    ),
+                    ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴) => (
+                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
+                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
+                    ),
+                    _ => panic!("Unsupported combination of instruction arguments and prefixes"),
+                },
+                ("reg", "rm") => {
+                    let (instruction_trait, instruction_fn) = match rexw_prefix {
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                            if argument1_sql_type.starts_with("address_16bit") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
+                            } else if argument1_sql_type.starts_with("address_32bit")
+                                && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                || argument1_sql_type.starts_with("norex_address_32bit") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
+                            } else if argument1_sql_type.starts_with("address")
+                                || argument1_sql_type.starts_with("norex_address") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
+                            }
+                        }
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                            if argument1_sql_type.starts_with("address") || argument1_sql_type.starts_with("norex_address") {
+                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
+                            }
+                        }
+                    };
+                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter0,parameter1)"),
+                        format!("{instruction_trait}<{instruction_type}>")
+                    )
+                }
+                ("rm", "reg") => {
+                    let (instruction_trait, instruction_fn) = match rexw_prefix {
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                            if argument0_sql_type.starts_with("address_16bit") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
+                            } else if argument0_sql_type.starts_with("address_32bit")
+                                && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                || argument0_sql_type.starts_with("norex_address_32bit") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
+                            } else if argument0_sql_type.starts_with("address")
+                                || argument0_sql_type.starts_with("norex_address") {
+                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
+                            }
+                        }
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                            if argument0_sql_type.starts_with("address") || argument0_sql_type.starts_with("norex_address") {
+                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
+                            }
+                        }
+                    };
+                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter1,parameter0)"),
+                        format!("{instruction_trait}<{instruction_type}>"))
+                }
+                ("rm", "immediate") => {
+                    let 𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 = instruction
+                        .𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇
+                        .expect("Legacy instruction can not have rm operand without either reg operand or opcode extension");
+                    let (instruction_trait, instruction_fn) = match rexw_prefix {
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                            if argument0_sql_type.starts_with("address_16bit")
+                                || argument0_sql_type.starts_with("norex_address_16bit") {
+                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                    "emit_legacy_reg_address_8086_memory_instruction_with_i")
+                            } else if argument0_sql_type.starts_with("address_32bit")
+                               && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                || argument0_sql_type.starts_with("norex_address_32bit") {
+                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                    "emit_legacy_reg_address_80386_memory_instruction_with_i")
+                            } else if argument0_sql_type.starts_with("address")
+                                || argument0_sql_type.starts_with("norex_address") {
+                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
+                            }
+                        }
+                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                            if argument0_sql_type.starts_with("address") || argument0_sql_type.starts_with("norex_address") {
+                                (    "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                     "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i")
+                            } else {
+                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
+                            }
+                        }
+                    };
+                    let immediate_size = &argument1_sql_type[3..];
+                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                        format!("{instruction_trait}<{instruction_type}>"))
+                }
+                _ => panic!("Unsupported combination of instruction arguments"),
+            };
+            let extra_trait = if need_extra_trait {
+                format!("+𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓+{instruction_trait_for_emit}")
+            } else {
+                "".to_owned()
+            };
+            for &xiz_version in process_xiz_version {
+                let arguments_type = if xiz_version { &arguments_type_xiz } else { &arguments_type };
+
+                for &unsized_memory in process_unsized_memory {
+                    let arguments_type_buffer;
+                    let arguments_type = if unsized_memory {
+                        let memory_size = memory_size.unwrap();
+                        arguments_type_buffer = arguments_type.replace(format!(",{memory_size}>").as_str(), ",0>");
+                        &arguments_type_buffer
+                    } else {
+                        arguments_type
+                    };
+
+                    if let 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 = assembler_kind {
+                        assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓{extra_trait}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
+                    } else {
+                        assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
+                    }
+                }
+            }
+        }
+    }
+    return (
+        assembler_instructions.concat(),
+        instruction_info_legacy.join(" + "),
+        instruction_info_x64.join(" + "),
+    );
+
+    #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+    #[repr(i8)]
+    enum 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞 {
+        𝔫𝔬𝔯𝔢𝔵𝔴 = 0,
+        𝔯𝔢𝔵𝔴 = 1,
+    }
+}
+
+async fn get_database_connection() -> sqlx::SqliteConnection {
+    use sqlx::Connection;
+    let root_path = std::env::current_dir().expect("Obtaining crate root path");
+    let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
+    // Note: during regular build root_path points to the yace workspace root, but in doctests
+    // we get nested crate root.  Try to access both paths.
+    let database_url = format!("sqlite:{}/instructions.db", root_path);
+    let database_url_fallback = format!("sqlite:{}/../instructions.db", root_path);
+    let Ok(connection) = sqlx::SqliteConnection::connect(database_url.as_str()).await else {
+        return sqlx::SqliteConnection::connect(database_url_fallback.as_str())
+            .await
+            .expect("Failed to connect to instructions.db database")
+    };
+    connection
+}
+
+fn get_insructions_info<'ᵉˣᵉᶜᵘᵗᵒʳ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮: sqlx::Database>(
+    connection: impl sqlx::Executor<'ᵉˣᵉᶜᵘᵗᵒʳ, Database = 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+    assembler_kind: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞,
+) -> impl futures::stream::Stream<Item = Result<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞, sqlx::Error>>
+       + 'ᵉˣᵉᶜᵘᵗᵒʳ
+where
+    &'ᵉˣᵉᶜᵘᵗᵒʳ str: sqlx::Type<𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Encode<'ᵉˣᵉᶜᵘᵗᵒʳ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::ColumnIndex<<𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮 as sqlx::Database>::Row>,
+    for<'ˢᵗʳⁱⁿᵍ> String: sqlx::Type<𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Encode<'ˢᵗʳⁱⁿᵍ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Decode<'ˢᵗʳⁱⁿᵍ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+    for<'ᵇʸᵗᵉ> u8: sqlx::Type<𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Encode<'ᵇʸᵗᵉ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Decode<'ᵇʸᵗᵉ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+    for<'ᵉˣᵗʳᵃ> Option<u8>: sqlx::Type<𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Encode<'ᵉˣᵗʳᵃ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>
+        + sqlx::Decode<'ᵉˣᵗʳᵃ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+    <𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮 as sqlx::database::HasArguments<'ᵉˣᵉᶜᵘᵗᵒʳ>>::Arguments: sqlx::IntoArguments<'ᵉˣᵉᶜᵘᵗᵒʳ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+{
+    let rust_types_map = assembler_kind.as_rust_types_map();
+    let rust_types_map_xiz = assembler_kind.as_rust_types_map_xiz();
+    sqlx::query(indoc! {"
+            SELECT name0 AS name,
+                   operand0.parameter_type AS type0,
+                   trait0.name AS trait0,
+                   operand0.operand_source AS operand0,
+                   operand1.parameter_type AS type1,
+                   trait1.name AS trait1,
+                   operand1.operand_source AS operand1,
+                   MAX(IFNULL(instruction.data_size_prefix, ''),
+                       IFNULL(operand0.data_size_prefix, ''),
+                       IFNULL(operand1.data_size_prefix, '')) AS data_size_prefix,
+                   MAX(IFNULL(instruction.address_size_prefix, ''),
+                       IFNULL(operand0.address_size_prefix, ''),
+                       IFNULL(operand1.address_size_prefix, '')) AS address_size_prefix,
+                   opcode,
+                   opcode_extension
+            FROM (
+                SELECT *
+                FROM (
+                    SELECT instruction.name AS name0, traits_information.name AS trait0, priority
+                    FROM instruction LEFT JOIN
+                         operands ON operands = short_name LEFT JOIN
+                         operand ON operand0 = operand.name LEFT JOIN
+                         traits_information ON parameter_type = allowed_operand
+                         LEFT JOIN traits_priority ON traits_information.name = traits_priority.name
+                    WHERE instruction.assembler_kind IS NULL OR
+                          instruction.assembler_kind == $1
+                    GROUP BY instruction.name, operands
+                    HAVING priority = MIN(priority)
+                    ORDER BY instruction.name, operands, priority
+                )
+                GROUP BY name0
+                HAVING priority = MAX(priority)
+                ORDER BY name0
+            ) LEFT JOIN (
+                SELECT *
+                FROM (
+                    SELECT instruction.name AS name1, traits_information.name AS trait1, priority
+                    FROM instruction LEFT JOIN
+                         operands ON operands = short_name LEFT JOIN
+                         operand ON operand1 = operand.name LEFT JOIN
+                         traits_information ON parameter_type = allowed_operand LEFT JOIN
+                         traits_priority ON traits_information.name = traits_priority.name
+                    WHERE instruction.assembler_kind IS NULL OR
+                          instruction.assembler_kind == $1
+                    GROUP BY instruction.name, operands
+                    HAVING priority = MIN(priority)
+                    ORDER BY instruction.name, operands, priority
+                )
+                GROUP BY name1
+                HAVING priority = MAX(priority)
+                ORDER BY name1
+            ) ON name0 = name1 LEFT JOIN
+            instruction ON name0 = instruction.name LEFT JOIN
+            operands ON operands = short_name LEFT JOIN
+            operand AS operand0 ON operand0 = operand0.name LEFT JOIN
+            operand AS operand1 ON operand1 = operand1.name,
+            traits_information AS trait0 ON trait0 = trait0.name AND operand0.parameter_type = trait0.allowed_operand,
+            traits_information AS trait1 ON trait1 = trait1.name AND operand1.parameter_type = trait1.allowed_operand
+            WHERE (instruction.assembler_kind IS NULL OR
+                   instruction.assembler_kind == $1) AND
+                  (operand0.data_size_prefix = operand1.data_size_prefix OR
+                   operand0.data_size_prefix IS NULL OR
+                   operand1.data_size_prefix IS NULL) AND
+                  (operand0.assembler_kind IS NULL OR operand0.assembler_kind = $1) AND
+                  (operand1.assembler_kind IS NULL OR operand1.assembler_kind = $1)
+            GROUP BY name0, type0, type1
+            HAVING operands = MIN(operands)
+            ORDER BY name0, type0, type1;"})
+    .bind(assembler_kind.as_str())
+    .fetch(connection)
+    .map(|row| {
+        use sqlx::Row;
+
+        let row = row?;
+        let instruction_name: String = row.try_get("name")?;
+        let instruction_argument0: String = row.try_get("type0")?;
+        let instruction_argument1: String = row.try_get("type1")?;
+        let instruction_argument0_trait: String = row.try_get("trait0")?;
+        let instruction_argument1_trait: String = row.try_get("trait1")?;
+        let instruction_operand0: String = row.try_get("operand0")?;
+        let instruction_operand1: String = row.try_get("operand1")?;
+
+        let instruction_trait_name = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
+        let instruction_argument0_type = rust_types_map
+            .get(instruction_argument0.as_str())
+            .expect("Failed to convert sql type to rust type");
+        let instruction_argument0_type_xiz = rust_types_map_xiz.get(instruction_argument0.as_str()).copied();
+        let instruction_argument1_type = rust_types_map
+            .get(instruction_argument1.as_str())
+            .expect("Failed to convert sql type to rust type");
+        let instruction_argument1_type_xiz = rust_types_map_xiz.get(instruction_argument1.as_str()).copied();
+        let instruction_argument0_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
+            .get(instruction_argument0_trait.as_str())
+            .expect("Failed to convert sql type to rust type");
+        let instruction_argument1_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
+            .get(instruction_argument1_trait.as_str())
+            .expect("Failed to convert sql type to rust type");
+
+        Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+            𝖿𝗇_𝗇𝖺𝗆𝖾: instruction_name,
+            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: instruction_trait_name,
+            𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("data_size_prefix")?,
+            𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("address_size_prefix")?,
+            𝗈𝗉𝖼𝗈𝖽𝖾: row.try_get("opcode")?,
+            𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇: row.try_get("opcode_extension")?,
+            𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌: vec![
+                𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
+                    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: instruction_argument0,
+                    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: instruction_operand0,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: instruction_argument0_type,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: instruction_argument0_type_xiz,
+                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: instruction_argument0_trait,
+                },
+                𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
+                    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: instruction_argument1,
+                    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: instruction_operand1,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: instruction_argument1_type,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: instruction_argument1_type_xiz,
+                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: instruction_argument1_trait,
+                },
+            ],
+        })
+    })
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(i8)]
+enum 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
+    𝔩𝔢𝔤𝔞𝔠𝔶 = 0,
+    𝔵86_64 = 1,
+}
+
+impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
+    fn as_str(self) -> &'static str {
+        ["legacy", "x86_64"][self as usize]
+    }
+    fn as_rust_types_map(self) -> &'static HashMap<&'static str, &'static str> {
+        [&*𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔩𝔢𝔤𝔞𝔠𝔶, &*𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64][self as usize]
+    }
+    fn as_rust_types_map_xiz(self) -> &'static HashMap<&'static str, &'static str> {
+        [&*𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔩𝔢𝔤𝔞𝔠𝔶_𝔴𝔦𝔱𝔥_𝔢𝔦𝔷, &*𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64_𝔴𝔦𝔱𝔥_𝔯𝔦𝔷][self as usize]
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+    𝖿𝗇_𝗇𝖺𝗆𝖾: String,
+    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: String,
+    𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: String,
+    𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: String,
+    𝗈𝗉𝖼𝗈𝖽𝖾: u8,
+    𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇: Option<u8>,
+    𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌: Vec<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
+    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: String,
+    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: String,
+    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: &'static str,
+    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: Option<&'static str>,
+    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: &'static str,
 }
 
 fn 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(name: &str) -> String {
@@ -665,3 +1168,300 @@ fn 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(name: &str) -> String {
     }
     return unsafe { String::from_utf8_unchecked(𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾) };
 }
+
+static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: Lazy<(String, String, String)> = Lazy::new(get_instrution_info);
+static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    hashmap! {
+        "assembler_operand_of_8bit_instruction" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅_𝒐𝒇_8ᵇⁱᵗ_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+        "assembler_operand_separate_accumulator" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅_𝒔𝒆𝒑𝒂𝒓𝒂𝒕𝒆_𝒂𝒄𝒄𝒖𝒎𝒖𝒍𝒂𝒕𝒐𝒓",
+        "generic_assembler_operand" => "𝒈𝒆𝒏𝒆𝒓𝒊𝒄_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
+    }
+});
+static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔩𝔢𝔤𝔞𝔠𝔶: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    hashmap! {
+        "accumulator_register_16bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
+        "accumulator_register_32bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ",
+        "accumulator_register_8bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ",
+        "address_16bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_8086<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                              "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐛𝐚𝐬𝐞_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                              "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                              "i16,",
+                                                              "2>"),
+        "address_16bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_8086<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                              "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐛𝐚𝐬𝐞_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                              "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                              "i16,",
+                                                              "4>"),
+        "address_16bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_8086<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐛𝐚𝐬𝐞_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ,",
+                                                             "i16,",
+                                                             "1>"),
+        "address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+        "gp_register_16bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ_8086",
+        "gp_register_32bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386",
+        "gp_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ_8086",
+        "imm16" => "i16",
+        "imm32" => "i32",
+        "imm64" => "i64",
+        "imm8" => "i8",
+    }
+});
+static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔩𝔢𝔤𝔞𝔠𝔶_𝔴𝔦𝔱𝔥_𝔢𝔦𝔷: Lazy<
+    HashMap<&'static str, &'static str>,
+> = Lazy::new(|| {
+    hashmap! {
+        "address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+    }
+});
+static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    hashmap! {
+        "accumulator_register_16bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
+        "accumulator_register_32bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ",
+        "accumulator_register_64bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ",
+        "accumulator_register_8bit" => "𝐚𝐜𝐜𝐮𝐦𝐮𝐥𝐚𝐭𝐨𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ",
+        "address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "8>"),
+        "address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+        "address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "8>"),
+        "address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+        "gp_register_16bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ_ₓ86_64",
+        "gp_register_32bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64",
+        "gp_register_64bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ",
+        "imm16" => "i16",
+        "imm32" => "i32",
+        "imm64" => "i64",
+        "imm8" => "i8",
+        "low_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗₗₒ",
+        "norex_address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "2>"),
+        "norex_address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "4>"),
+        "norex_address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "8>"),
+        "norex_address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                  "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "1>"),
+        "norex_address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "2>"),
+        "norex_address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "4>"),
+        "norex_address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "8>"),
+        "norex_address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                  "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "1>"),
+        "norex_register_16bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ_8086",
+        "norex_register_32bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386",
+        "norex_register_64bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ",
+        "norex_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ_8086",
+        "rex_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ_ₓ86_64",
+    }
+});
+static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64_𝔴𝔦𝔱𝔥_𝔯𝔦𝔷: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    hashmap! {
+        "address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "8>"),
+        "address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+        "address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "2>"),
+        "address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "4>"),
+        "address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                             "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                             "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                             "i32,",
+                                                             "8>"),
+        "address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                            "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                            "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ,",
+                                                            "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                            "i32,",
+                                                            "1>"),
+        "norex_address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "2>"),
+        "norex_address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "4>"),
+        "norex_address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "8>"),
+        "norex_address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                  "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐞𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_80386,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "1>"),
+        "norex_address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "2>"),
+        "norex_address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "4>"),
+        "norex_address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                   "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                   "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                   "i32,",
+                                                                   "8>"),
+        "norex_address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                  "𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐨𝐫_𝐫𝐢𝐳_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "1>"),
+    }
+});
