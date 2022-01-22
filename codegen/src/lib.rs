@@ -166,7 +166,7 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
             𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌,
         };
         let mut process = |identifier: &Ident| -> Result<(), &'static str> {
-            match identifier.to_string().as_str() {
+            match identifier.to_string().as_ref() {
                 "𝔞𝔡𝔡𝔯16" => {
                     if result.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾.is_some() {
                         return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — duplicated address size.\");");
@@ -269,7 +269,7 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
                 let Some(TokenTree::Ident(_)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 else {
                     return Ok(Default::default());
                 };
-                if !trait_iter.next().is_none() {
+                if trait_iter.next().is_some() {
                     return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
                 }
                 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾
@@ -289,7 +289,7 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
                 let Some(TokenTree::Ident(_)) = 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 else {
                     return Ok(Default::default());
                 };
-                if !struct_iter.next().is_none() {
+                if struct_iter.next().is_some() {
                     return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
                 }
                 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
@@ -323,7 +323,7 @@ fn filter_x86_markers_iterable(
             return output.extend([token])
         };
 
-        match ident.to_string().as_str() {
+        match ident.to_string().as_ref() {
             "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" => {
                 let additional_info: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)
                 {
@@ -533,7 +533,7 @@ fn marker_is_compatible<'ᵉˣᵗʳᵃ>(
                 },
             ),
         },
-        "Χ𝔦𝔷" => (Some(attributes.ₓ𝗂𝗓 == None), attributes),
+        "Χ𝔦𝔷" => (Some(attributes.ₓ𝗂𝗓.is_none()), attributes),
         "Ξ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 == Some(true)), attributes),
         "Χ𝔷𝔷" => (Some(attributes.𝖺𝗏𝗑𝟧𝟣𝟤 != Some(true)), attributes),
         _ => (None, attributes),
@@ -550,10 +550,12 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
         let mut instructions_stream = get_insructions_info(&mut connection, assembler_kind);
         while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
             let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
-            if (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "rex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit")
-                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("address") && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit")
-                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "rex_register_8bit")
-                || (𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 == "norex_register_8bit" && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("address"))
+            let argument0_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+            let argument1_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+            if argument0_sql_type == "norex_register_8bit"
+                && (argument1_sql_type == "rex_register_8bit" || argument1_sql_type.starts_with("address"))
+                || (argument0_sql_type == "rex_register_8bit" || argument0_sql_type.starts_with("address"))
+                    && argument1_sql_type == "norex_register_8bit"
             {
                 continue;
             }
@@ -576,7 +578,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             let mut parameters_list = Vec::new();
             let mut memory_size = None;
             let mut non_memory_size = None;
-            for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.into_iter().enumerate() {
+            for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
                 let 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾;
                 arguments_type.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
                 if let Some(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷) = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷
@@ -608,7 +610,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     None
                 };
 
-                let operand_size_target = if 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾.ends_with(">") {
+                let operand_size_target = if 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾.ends_with('>') {
                     &mut memory_size
                 } else {
                     &mut non_memory_size
@@ -695,9 +697,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             );
 
             let argument0_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-            let argument0_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
             let argument1_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-            let argument1_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
             let (instruction_emit, instruction_trait_for_emit) = match (argument0_sql_operand, argument1_sql_operand) {
                 ("implicit", "immediate") => match (argument1_sql_type, rexw_prefix) {
                     ("imm8", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
@@ -879,8 +879,8 @@ async fn get_database_connection() -> sqlx::SqliteConnection {
     let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
     // Note: during regular build root_path points to the yace workspace root, but in doctests
     // we get nested crate root.  Try to access both paths.
-    let database_url = format!("sqlite:{}/instructions.db", root_path);
-    let database_url_fallback = format!("sqlite:{}/../instructions.db", root_path);
+    let database_url = format!("sqlite:{}/instructions.db?immutable=1", root_path);
+    let database_url_fallback = format!("sqlite:{}/../instructions.db?immutable=1", root_path);
     let Ok(connection) = sqlx::SqliteConnection::connect(database_url.as_str()).await else {
         return sqlx::SqliteConnection::connect(database_url_fallback.as_str())
             .await
@@ -995,11 +995,11 @@ where
         let instruction_operand1: String = row.try_get("operand1")?;
 
         let instruction_trait_name = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
-        let instruction_argument0_type = rust_types_map
+        let instruction_argument0_type = *rust_types_map
             .get(instruction_argument0.as_str())
             .expect("Failed to convert sql type to rust type");
         let instruction_argument0_type_xiz = rust_types_map_xiz.get(instruction_argument0.as_str()).copied();
-        let instruction_argument1_type = rust_types_map
+        let instruction_argument1_type = *rust_types_map
             .get(instruction_argument1.as_str())
             .expect("Failed to convert sql type to rust type");
         let instruction_argument1_type_xiz = rust_types_map_xiz.get(instruction_argument1.as_str()).copied();
@@ -1119,7 +1119,7 @@ fn 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(name: &str) -> String {
             }
         }
     }
-    return unsafe { String::from_utf8_unchecked(𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾) };
+    unsafe { String::from_utf8_unchecked(𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾) }
 }
 
 static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: Lazy<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞> = Lazy::new(get_instrution_info);
