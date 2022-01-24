@@ -3429,7 +3429,7 @@ impl From<super::𝗶𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻::𝐮�
 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙! {
     𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞
     {|value| (value * 0 + 1) << value}
-    {|value| unsafe { core::num::NonZeroU32::new_unchecked(value as u32) }.trailing_zeros()}
+    {|value| unsafe { #[allow(clippy::unnecessary_cast)]core::num::NonZeroU32::new_unchecked(value as u32) }.trailing_zeros()}
     {|value| value > 3}
 }
 
@@ -3587,8 +3587,8 @@ pub(crate) fn into_address_8086_discriminant(
     };
     unsafe {
         core::mem::transmute::<u8, 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_8086_𝐝𝐢𝐬𝐜𝐫𝐢𝐦𝐢𝐧𝐚𝐧𝐭>(
-            (((𝗂𝗇𝖽𝖾𝗑 & into_address_8086_discriminant_index) << into_address_8086_discriminant_shift) |
-             (𝖻𝖺𝗌𝖾 & into_address_8086_discriminant_base)) as u8,
+            ((𝗂𝗇𝖽𝖾𝗑 & into_address_8086_discriminant_index) << into_address_8086_discriminant_shift) |
+            (𝖻𝖺𝗌𝖾 & into_address_8086_discriminant_base),
         )
     }
 }

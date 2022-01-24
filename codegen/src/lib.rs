@@ -20,7 +20,7 @@ extern crate proc_macro;
 
 use {
     futures::{StreamExt, TryStreamExt},
-    indoc::formatdoc,
+    indoc::{formatdoc, indoc},
     maplit::hashmap,
     once_cell::sync::Lazy,
     proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree},
@@ -537,7 +537,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
     let mut connection = get_database_connection().await;
     for assembler_kind in [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64]
     {
-        for arguments_count in 1..=5 {
+        for arguments_count in 0..=5 {
             // We need that trick because of SQLx design: https://github.com/launchbadge/sqlx/issues/1594#issuecomment-1100763779
             let mut query = String::new();
             let mut instructions_stream = get_insructions_info(&mut connection, arguments_count, assembler_kind, &mut query);
@@ -965,79 +965,93 @@ where
     let rust_types_map = assembler_kind.as_rust_types_map();
     let rust_types_map_xiz = assembler_kind.as_rust_types_map_xiz();
 
-    let mut operand_requests = Vec::new();
-    let mut data_prefixes_selection = Vec::new();
-    let mut address_prefixes_selection = Vec::new();
-    let mut select_traits = Vec::new();
-    let mut operand_information = Vec::new();
-    let mut trait_information = Vec::new();
-    let mut combine_prefixes = Vec::new();
-    let mut assembler_kind_check = Vec::new();
-    let mut type_list = Vec::new();
-    for i in 0..operands_count {
-        operand_requests.push(format!(
-            "operand{i}.parameter_type AS type{i},trait{i}.name AS trait{i},operand{i}.operand_source AS operand{i},"
-        ));
-        data_prefixes_selection.push(format!(",IFNULL(operand{i}.data_size_prefix, '')"));
-        address_prefixes_selection.push(format!(",IFNULL(operand{i}.address_size_prefix, '')"));
-        let (prefix, suffix) = if i == 0 {
-            ("", "".to_owned())
-        } else {
-            (" LEFT JOIN", format!("ON name0 = name{i}"))
-        };
-        select_traits.push(formatdoc! {"
-            {prefix}(
-                SELECT name{i}, trait{i}
-                FROM (
-                    SELECT instruction.name AS name{i}, traits_information.name AS trait{i}, priority
-                    FROM instruction LEFT JOIN
-                         operands ON operands = short_name LEFT JOIN
-                         operand ON operand{i} = operand.name LEFT JOIN
-                         traits_information ON parameter_type = allowed_operand
-                         LEFT JOIN traits_priority ON traits_information.name = traits_priority.name
-                    WHERE instruction.assembler_kind IS NULL OR
-                          instruction.assembler_kind == $1
-                    GROUP BY instruction.name, operands
-                    HAVING priority = MIN(priority)
-                    ORDER BY instruction.name, operands, priority
-                )
-                GROUP BY name{i}
-                HAVING priority = MAX(priority)
-                ORDER BY name{i}
-            ){suffix}"});
-        operand_information.push(format!(" LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name"));
-        trait_information.push(format!(
-            ",traits_information AS trait{i} ON trait{i} = trait{i}.name AND operand{i}.parameter_type = trait{i}.allowed_operand"
-        ));
-        for j in 0..i {
-            combine_prefixes.push(formatdoc! {"
-                AND (operand{i}.data_size_prefix = operand{j}.data_size_prefix OR
-                     operand{i}.data_size_prefix IS NULL OR
-                     operand{j}.data_size_prefix IS NULL)
-                AND (operand{i}.address_size_prefix = operand{j}.address_size_prefix OR
-                     operand{i}.address_size_prefix IS NULL OR
-                     operand{j}.address_size_prefix IS NULL)"});
-        }
-        assembler_kind_check.push(format!(
-            "AND (operand{i}.assembler_kind IS NULL OR operand{i}.assembler_kind = $1)"
-        ));
-        type_list.push(format!(", type{i}"));
-    }
-    let operand_requests = operand_requests.concat();
-    let data_prefixes_selection = data_prefixes_selection.concat();
-    let address_prefixes_selection = address_prefixes_selection.concat();
-    let select_traits = select_traits.concat();
-    let operand_information = operand_information.concat();
-    let trait_information = trait_information.concat();
-    let combine_prefixes = combine_prefixes.concat();
-    let assembler_kind_check = assembler_kind_check.concat();
-    let type_list = type_list.concat();
-    let operand_count_check = if operands_count == 5 {
-        "".to_owned()
+    if operands_count == 0 {
+        *query = indoc! {"
+            SELECT instruction.name AS name,
+                   IFNULL(instruction.data_size_prefix, '') AS data_size_prefix,
+                   IFNULL(instruction.address_size_prefix, '') AS address_size_prefix,
+                   opcode,
+                   opcode_extension
+            FROM instruction LEFT JOIN
+            operands ON operands = short_name
+            WHERE (instruction.assembler_kind IS NULL OR instruction.assembler_kind == $1) AND
+                  operands.operand1 IS NULL
+            GROUP BY instruction.name
+            ORDER BY instruction.name;"}.to_owned();
     } else {
-        format!("AND operands.operand{operands_count} IS NULL")
-    };
-    *query = formatdoc! {"
+        let mut operand_requests = Vec::new();
+        let mut data_prefixes_selection = Vec::new();
+        let mut address_prefixes_selection = Vec::new();
+        let mut select_traits = Vec::new();
+        let mut operand_information = Vec::new();
+        let mut trait_information = Vec::new();
+        let mut combine_prefixes = Vec::new();
+        let mut assembler_kind_check = Vec::new();
+        let mut type_list = Vec::new();
+        for i in 0..operands_count {
+            operand_requests.push(format!(
+                "operand{i}.parameter_type AS type{i},trait{i}.name AS trait{i},operand{i}.operand_source AS operand{i},"
+            ));
+            data_prefixes_selection.push(format!(",IFNULL(operand{i}.data_size_prefix, '')"));
+            address_prefixes_selection.push(format!(",IFNULL(operand{i}.address_size_prefix, '')"));
+            let (prefix, suffix) = if i == 0 {
+                ("", "".to_owned())
+            } else {
+                (" LEFT JOIN", format!("ON name0 = name{i}"))
+            };
+            select_traits.push(formatdoc! {"
+                {prefix}(
+                    SELECT name{i}, trait{i}
+                    FROM (
+                        SELECT instruction.name AS name{i}, traits_information.name AS trait{i}, priority
+                        FROM instruction LEFT JOIN
+                             operands ON operands = short_name LEFT JOIN
+                             operand ON operand{i} = operand.name LEFT JOIN
+                             traits_information ON parameter_type = allowed_operand
+                             LEFT JOIN traits_priority ON traits_information.name = traits_priority.name
+                        WHERE instruction.assembler_kind IS NULL OR
+                              instruction.assembler_kind == $1
+                        GROUP BY instruction.name, operands
+                        HAVING priority = MIN(priority)
+                        ORDER BY instruction.name, operands, priority
+                    )
+                    GROUP BY name{i}
+                    HAVING priority = MAX(priority)
+                    ORDER BY name{i}
+                ){suffix}"});
+            operand_information.push(format!(" LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name"));
+            trait_information.push(formatdoc! {"
+                ,traits_information AS trait{i} ON trait{i} = trait{i}.name
+                AND operand{i}.parameter_type = trait{i}.allowed_operand"});
+            for j in 0..i {
+                combine_prefixes.push(formatdoc! {"
+                    AND (operand{i}.data_size_prefix = operand{j}.data_size_prefix OR
+                         operand{i}.data_size_prefix IS NULL OR
+                         operand{j}.data_size_prefix IS NULL)
+                    AND (operand{i}.address_size_prefix = operand{j}.address_size_prefix OR
+                         operand{i}.address_size_prefix IS NULL OR
+                         operand{j}.address_size_prefix IS NULL)"});
+            }
+            assembler_kind_check.push(format!(
+                "AND (operand{i}.assembler_kind IS NULL OR operand{i}.assembler_kind = $1)"
+            ));
+            type_list.push(format!(", type{i}"));
+        }
+        let operand_requests = operand_requests.concat();
+        let data_prefixes_selection = data_prefixes_selection.concat();
+        let address_prefixes_selection = address_prefixes_selection.concat();
+        let select_traits = select_traits.concat();
+        let operand_information = operand_information.concat();
+        let trait_information = trait_information.concat();
+        let combine_prefixes = combine_prefixes.concat();
+        let assembler_kind_check = assembler_kind_check.concat();
+        let type_list = type_list.concat();
+        let operand_count_check = if operands_count == 5 {
+            "".to_owned()
+        } else {
+            format!("AND operands.operand{operands_count} IS NULL")
+        };
+        *query = formatdoc! {"
             SELECT name0 AS name,
                    {operand_requests}
                    MAX(IFNULL(instruction.data_size_prefix, '') {data_prefixes_selection}) AS data_size_prefix,
@@ -1056,6 +1070,7 @@ where
             GROUP BY instruction.name {type_list}
             HAVING operands = MIN(operands)
             ORDER BY instruction.name {type_list};"};
+    }
     sqlx::query(query.as_str())
         .bind(assembler_kind.as_str())
         .fetch(connection)
@@ -1068,11 +1083,11 @@ where
 
             let mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = Vec::new();
             for i in 0..operands_count {
-                const TYPE: [&'static str; 5] = ["type0", "type1", "type2", "type3", "type4"];
+                const TYPE: [&str; 5] = ["type0", "type1", "type2", "type3", "type4"];
                 let argument: String = row.try_get(TYPE[i])?;
-                const TRAIT: [&'static str; 5] = ["trait0", "trait1", "trait2", "trait3", "trait4"];
+                const TRAIT: [&str; 5] = ["trait0", "trait1", "trait2", "trait3", "trait4"];
                 let argument_trait: String = row.try_get(TRAIT[i])?;
-                const OPERAND: [&'static str; 5] = ["operand0", "operand1", "operand2", "operand3", "operand4"];
+                const OPERAND: [&str; 5] = ["operand0", "operand1", "operand2", "operand3", "operand4"];
                 let operand: String = row.try_get(OPERAND[i])?;
 
                 let argument_type = *rust_types_map
@@ -1254,8 +1269,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
                                                             "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
                                                             "i32,",
                                                             "1>"),
-        "assembler_operand_of_8bit_instruction" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒂𝒓𝒈𝒖𝒎𝒆𝒏𝒕_𝒐𝒇_8ᵇⁱᵗ_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-        "assembler_operand_separate_accumulator" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒂𝒓𝒈𝒖𝒎𝒆𝒏𝒕_𝒔𝒆𝒑𝒂𝒓𝒂𝒕𝒆_𝒂𝒄𝒄𝒖𝒎𝒖𝒍𝒂𝒕𝒐𝒓",
+        "assembler_operand_of_8bit_instruction" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅_𝒐𝒇_8ᵇⁱᵗ_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+        "assembler_operand_separate_accumulator" => "𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅_𝒔𝒆𝒑𝒂𝒓𝒂𝒕𝒆_𝒂𝒄𝒄𝒖𝒎𝒖𝒍𝒂𝒕𝒐𝒓",
         "generic_assembler_operand" => "𝒈𝒆𝒏𝒆𝒓𝒊𝒄_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
         "gp_register_16bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
         "gp_register_32bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ",
