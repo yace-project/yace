@@ -20,7 +20,7 @@ extern crate proc_macro;
 
 use {
     futures::{StreamExt, TryStreamExt},
-    indoc::indoc,
+    indoc::formatdoc,
     maplit::hashmap,
     once_cell::sync::Lazy,
     proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree},
@@ -527,6 +527,7 @@ fn marker_is_compatible<'ᵉˣᵗʳᵃ>(
 
 #[tokio::main]
 async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+    let mut instruction_trait = HashSet::new();
     let mut instruction_traits = HashSet::new();
     let mut kind_specific_traits = [HashSet::new(), HashSet::new()];
     let mut assembler_instructions = Vec::new();
@@ -536,326 +537,367 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
     let mut connection = get_database_connection().await;
     for assembler_kind in [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64]
     {
-        let mut instructions_stream = get_insructions_info(&mut connection, assembler_kind);
-        while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
-            let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
-            let argument0_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
-            let argument1_sql_type = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
-            if argument0_sql_type == "norex_register_8bit"
-                && (argument1_sql_type == "rex_register_8bit" || argument1_sql_type.starts_with("address"))
-                || (argument0_sql_type == "rex_register_8bit" || argument0_sql_type.starts_with("address"))
-                    && argument1_sql_type == "norex_register_8bit"
-            {
-                continue;
-            }
+        for arguments_count in 1..=5 {
+            // We need that trick because of SQLx design: https://github.com/launchbadge/sqlx/issues/1594#issuecomment-1100763779
+            let mut query = String::new();
+            let mut instructions_stream = get_insructions_info(&mut connection, arguments_count, assembler_kind, &mut query);
+            while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
+                let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
 
-            let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
-            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
+                let arguments_sql_types = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
+                    .iter()
+                    .map(|argument| argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str())
+                    .collect::<Vec<_>>();
 
-            if instruction_traits.insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                let argument0_trait = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍;
-                let argument1_trait = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍;
-                assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
-                assembler_instructions.push(format!("impl<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮:{argument0_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮:{argument1_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮 as {argument0_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭,<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮 as {argument1_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭)>>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<(𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮,𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮)>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{#[allow(clippy::type_complexity)]type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮 as {argument0_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭,<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮 as {argument1_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭)>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;#[allow(clippy::type_complexity)]type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<(<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮 as {argument0_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭,<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮 as {argument1_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭)>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,(parameter0,parameter1):(𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮,𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮))->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation((Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻0_𝓽𝔂𝓹𝓮 as {argument0_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter0),Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻1_𝓽𝔂𝓹𝓮 as {argument1_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter1)))}}}}"));
-                assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
-                𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(arguments)}}"));
-            }
-
-            if kind_specific_traits[assembler_kind as usize].insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 {
-                    assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
-                    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].push(format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(arguments)}}}}"));
-                } else {
-                    assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
-                    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].push(format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(arguments)}}}}"));
-                }
-            }
-
-            let process_xiz_version = 'ᵃⁿˢʷᵉʳ: {
-                for argument in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 {
-                    if argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷.is_some() {
-                        break 'ᵃⁿˢʷᵉʳ &[false, true][..];
-                    }
-                }
-                break 'ᵃⁿˢʷᵉʳ &[false][..];
-            };
-
-            let mut arguments_type = Vec::new();
-            let mut arguments_type_xiz = Vec::new();
-            let mut arguments_trait_type = Vec::new();
-            let mut parameters_list = Vec::new();
-            let mut memory_size = None;
-            let mut non_memory_size = None;
-            for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
-                let 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾;
-                arguments_type.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
-                if let Some(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷) = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷
+                // Only instructions with two or more operands can have rex/norew operand mixup.
+                // And only instructions with one or two operands can accept 8ᵇⁱᵗ arguments.
+                // This means we need to only care about 2-operand instructions here.
+                if arguments_count == 2
+                    && arguments_sql_types[0] == "norex_register_8bit"
+                    && (arguments_sql_types[1] == "rex_register_8bit"
+                        || arguments_sql_types[1].starts_with("address")
+                        || arguments_sql_types[1].starts_with("gp_register"))
+                    || (arguments_sql_types[0] == "rex_register_8bit"
+                        || arguments_sql_types[0].starts_with("address")
+                        || arguments_sql_types[0].starts_with("gp_register"))
+                        && arguments_sql_types[1] == "norex_register_8bit"
                 {
-                    arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷);
-                } else {
-                    arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
+                    continue;
                 }
 
-                let 𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾;
-                arguments_trait_type.push(𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾);
+                let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
+                let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
 
-                let 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 = argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
-                let operand_size = if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_8bit") {
-                    Some(1)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_16bit") {
-                    Some(2)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_32bit") {
-                    Some(4)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_64bit") {
-                    Some(8)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_128bit") {
-                    Some(16)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_256bit") {
-                    Some(32)
-                } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_512bit") {
-                    Some(64)
-                } else {
-                    None
-                };
-
-                let operand_size_target = if 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾.ends_with('>') {
-                    &mut memory_size
-                } else {
-                    &mut non_memory_size
-                };
-
-                if operand_size_target.is_none() || *operand_size_target == operand_size {
-                    *operand_size_target = operand_size;
-                } else {
-                    *operand_size_target = Some(0);
+                if instruction_trait.insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
+                    assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
+                    assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
+                    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(arguments)}}"));
                 }
 
-                let 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 = argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-                if 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 == "implicit" {
-                    parameters_list.push(format!("_parameter{index}"));
-                } else {
-                    parameters_list.push(format!("parameter{index}"));
+                if instruction_traits.insert((instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned(), arguments_count)) {
+                    let mut parameter_types_list = Vec::new();
+                    let mut argument_types = Vec::new();
+                    let mut parameters_type_list = Vec::new();
+                    let mut parameters_list = Vec::new();
+                    let mut parameters_convert_into = Vec::new();
+                    for (i, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
+                        let argument_trait = argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍;
+                        parameter_types_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮:{argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,"));
+                        argument_types.push(format!("<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭"));
+                        parameters_type_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮"));
+                        parameters_list.push(format!("parameter{i}"));
+                        parameters_convert_into.push(format!(
+                            "Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter{i})"
+                        ));
+                    }
+                    let parameter_types_list = parameter_types_list.concat();
+                    let argument_types = argument_types.join(", ");
+                    let parameters_type_list = parameters_type_list.join(", ");
+                    let parameters_list = parameters_list.join(", ");
+                    let parameters_convert_into = parameters_convert_into.join(", ");
+                    assembler_instructions.push(format!("impl<{parameter_types_list}𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<({argument_types})>>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔<({parameters_type_list})>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{#[allow(clippy::type_complexity)]type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<({argument_types})>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;#[allow(clippy::type_complexity)]type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<({argument_types})>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,({parameters_list}):({parameters_type_list}))->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(({parameters_convert_into}))}}}}"));
                 }
-            }
-            let arguments_type = format!("({})", arguments_type.join(","));
-            let arguments_type_xiz = format!("({})", arguments_type_xiz.join(","));
-            let arguments_trait_type = format!("({})", arguments_trait_type.join(","));
-            let process_unsized_memory = if memory_size.is_some() && memory_size == non_memory_size {
-                &[false, true][..]
-            } else {
-                &[false][..]
-            };
 
-            let parameters_list = parameters_list.join(",");
-            let mut need_extra_trait = false;
-            let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
-            let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = match (assembler_kind, 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
-            {
-                (_, "") => "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞",
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_16bit") => {
-                    need_extra_trait = true;
-                    "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ"
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_32bit") => {
-                    need_extra_trait = true;
-                    "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ"
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_32bit") => {
-                    "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_64bit") => {
-                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
-                }
-                _ => panic!("Usupported config of address prefixes: {assembler_kind:?} {𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
-            };
-            let 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
-            let (𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑, rexw_prefix) = match (assembler_kind, 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
-            {
-                (_, "") => ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴),
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_16bit") => {
-                    need_extra_trait = true;
-                    ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_32bit") => {
-                    need_extra_trait = true;
-                    ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_16bit") => {
-                    ("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_32bit") => {
-                    ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
-                }
-                (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_64bit") => {
-                    ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴)
-                }
-                _ => panic!("Usupported config of data prefixes: {assembler_kind:?} {𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
-            };
-            let instruction_type = format!(
-                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
-                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
-                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
-                instruction.𝗈𝗉𝖼𝗈𝖽𝖾,
-                "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞" // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
-            );
-
-            let argument0_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-            let argument1_sql_operand = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[1].𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-            let (instruction_emit, instruction_trait_for_emit) = match (argument0_sql_operand, argument1_sql_operand) {
-                ("implicit", "immediate") => match (argument1_sql_type, rexw_prefix) {
-                    ("imm8", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
-                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[parameter1 as u8])"),
-                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>")
-                    ),
-                    ("imm16", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
-                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8])"),
-                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>")
-                    ),
-                    ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
-                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
-                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
-                    ),
-                    ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴) => (
-                        format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
-                        format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
-                    ),
-                    _ => panic!("Unsupported combination of instruction arguments and prefixes"),
-                },
-                ("reg", "rm") => {
-                    let (instruction_trait, instruction_fn) = match rexw_prefix {
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
-                            if argument1_sql_type.starts_with("address_16bit") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
-                            } else if argument1_sql_type.starts_with("address_32bit")
-                                && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                || argument1_sql_type.starts_with("norex_address_32bit") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
-                            } else if argument1_sql_type.starts_with("address")
-                                || argument1_sql_type.starts_with("norex_address") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
-                            }
-                        }
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                            if argument1_sql_type.starts_with("address") || argument1_sql_type.starts_with("norex_address") {
-                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
-                            }
-                        }
-                    };
-                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter0,parameter1)"),
-                        format!("{instruction_trait}<{instruction_type}>")
-                    )
-                }
-                ("rm", "reg") => {
-                    let (instruction_trait, instruction_fn) = match rexw_prefix {
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
-                            if argument0_sql_type.starts_with("address_16bit") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
-                            } else if argument0_sql_type.starts_with("address_32bit")
-                                && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                || argument0_sql_type.starts_with("norex_address_32bit") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
-                            } else if argument0_sql_type.starts_with("address")
-                                || argument0_sql_type.starts_with("norex_address") {
-                                ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
-                            }
-                        }
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                            if argument0_sql_type.starts_with("address") || argument0_sql_type.starts_with("norex_address") {
-                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
-                            }
-                        }
-                    };
-                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter1,parameter0)"),
-                        format!("{instruction_trait}<{instruction_type}>"))
-                }
-                ("rm", "immediate") => {
-                    let 𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 = instruction
-                        .𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇
-                        .expect("Legacy instruction can not have rm operand without either reg operand or opcode extension");
-                    let (instruction_trait, instruction_fn) = match rexw_prefix {
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
-                            if argument0_sql_type.starts_with("address_16bit")
-                                || argument0_sql_type.starts_with("norex_address_16bit") {
-                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                    "emit_legacy_reg_address_8086_memory_instruction_with_i")
-                            } else if argument0_sql_type.starts_with("address_32bit")
-                               && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                || argument0_sql_type.starts_with("norex_address_32bit") {
-                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                    "emit_legacy_reg_address_80386_memory_instruction_with_i")
-                            } else if argument0_sql_type.starts_with("address")
-                                || argument0_sql_type.starts_with("norex_address") {
-                                (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                    "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
-                            }
-                        }
-                        𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                            if argument0_sql_type.starts_with("address") || argument0_sql_type.starts_with("norex_address") {
-                                (    "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                     "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i")
-                            } else {
-                                ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
-                            }
-                        }
-                    };
-                    let immediate_size = &argument1_sql_type[3..];
-                    (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
-                        format!("{instruction_trait}<{instruction_type}>"))
-                }
-                _ => panic!("Unsupported combination of instruction arguments"),
-            };
-            let extra_trait = if need_extra_trait {
-                format!("+𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓+{instruction_trait_for_emit}")
-            } else {
-                "".to_owned()
-            };
-            for &xiz_version in process_xiz_version {
-                let arguments_type = if xiz_version { &arguments_type_xiz } else { &arguments_type };
-
-                for &unsized_memory in process_unsized_memory {
-                    let arguments_type_buffer;
-                    let arguments_type = if unsized_memory {
-                        let memory_size = memory_size.unwrap();
-                        arguments_type_buffer = arguments_type.replace(format!(",{memory_size}>").as_str(), ",0>");
-                        &arguments_type_buffer
+                if kind_specific_traits[assembler_kind as usize].insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
+                    if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 {
+                        assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
+                        𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].push(format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(arguments)}}}}"));
                     } else {
-                        arguments_type
-                    };
-
-                    if let 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 = assembler_kind {
-                        assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓{extra_trait}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
-                    } else {
-                        assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
+                        assembler_instructions.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}"));
+                        𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].push(format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(arguments)}}}}"));
                     }
                 }
-            }
-            for &unsized_memory in process_unsized_memory {
-                let arguments_trait_type_buffer;
-                let arguments_trait_type = if unsized_memory {
-                    let memory_size = memory_size.unwrap();
-                    arguments_trait_type_buffer = arguments_trait_type.replace(format!(",{memory_size}>").as_str(), ",0>");
-                    &arguments_trait_type_buffer
-                } else {
-                    &arguments_trait_type
+
+                let process_xiz_version = 'ᵃⁿˢʷᵉʳ: {
+                    for argument in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 {
+                        if argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷.is_some() {
+                            break 'ᵃⁿˢʷᵉʳ &[false, true][..];
+                        }
+                    }
+                    break 'ᵃⁿˢʷᵉʳ &[false][..];
                 };
-                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize].push(format!("{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_trait_type}>"));
+
+                let mut arguments_type = Vec::new();
+                let mut arguments_type_xiz = Vec::new();
+                let mut arguments_trait_type = Vec::new();
+                let mut parameters_list = Vec::new();
+                let mut memory_size = None;
+                let mut non_memory_size = None;
+                for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
+                    let 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾;
+                    arguments_type.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
+                    if let Some(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷) = argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷
+                    {
+                        arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷);
+                    } else {
+                        arguments_type_xiz.push(𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
+                    }
+
+                    let 𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾 = argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾;
+                    arguments_trait_type.push(𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾);
+
+                    let 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 = argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+                    let operand_size = if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_8bit") {
+                        Some(1)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_16bit") {
+                        Some(2)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_32bit") {
+                        Some(4)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_64bit") {
+                        Some(8)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_128bit") {
+                        Some(16)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_256bit") {
+                        Some(32)
+                    } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_512bit") {
+                        Some(64)
+                    } else {
+                        None
+                    };
+
+                    let operand_size_target = if 𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾.ends_with('>') {
+                        &mut memory_size
+                    } else {
+                        &mut non_memory_size
+                    };
+
+                    if operand_size_target.is_none() || *operand_size_target == operand_size {
+                        *operand_size_target = operand_size;
+                    } else {
+                        *operand_size_target = Some(0);
+                    }
+
+                    let 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 = argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
+                    if 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 == "implicit" {
+                        parameters_list.push(format!("_parameter{index}"));
+                    } else {
+                        parameters_list.push(format!("parameter{index}"));
+                    }
+                }
+                let arguments_type = format!("({})", arguments_type.join(","));
+                let arguments_type_xiz = format!("({})", arguments_type_xiz.join(","));
+                let arguments_trait_type = format!("({})", arguments_trait_type.join(","));
+                let process_unsized_memory = if memory_size.is_some() && memory_size == non_memory_size {
+                    &[false, true][..]
+                } else {
+                    &[false][..]
+                };
+
+                let parameters_list = parameters_list.join(",");
+                let mut need_extra_trait = false;
+                let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
+                let 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = match (assembler_kind, 𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
+                {
+                    (_, "") => "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞",
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_16bit") =>
+                    {
+                        need_extra_trait = true;
+                        "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ"
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "address_size_prefix_32bit") =>
+                    {
+                        need_extra_trait = true;
+                        "<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ"
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_32bit") => {
+                        "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x67>"
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "address_size_prefix_64bit") => {
+                        "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞"
+                    }
+                    _ => panic!("Usupported config of address prefixes: {assembler_kind:?} {𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
+                };
+                let 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑;
+                let (𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑, rexw_prefix) = match (assembler_kind, 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str())
+                {
+                    (_, "") => ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴),
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_16bit") => {
+                        need_extra_trait = true;
+                        ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_16ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶, "data_size_prefix_32bit") => {
+                        need_extra_trait = true;
+                        ("<Self as 𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓>::𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_32ᵇⁱᵗ", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_16bit") => {
+                        ("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x66>", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_32bit") => {
+                        ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴)
+                    }
+                    (𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64, "data_size_prefix_64bit") => {
+                        ("𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴)
+                    }
+                    _ => panic!("Usupported config of data prefixes: {assembler_kind:?} {𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑:?}"),
+                };
+                let instruction_type = format!(
+                    "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                    𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
+                    𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞", // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                    instruction.𝗈𝗉𝖼𝗈𝖽𝖾,
+                    "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞" // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                );
+
+                let arguments_sql_operands = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
+                    .iter()
+                    .map(|argument| argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str())
+                    .collect::<Vec<_>>();
+                let (instruction_emit, instruction_trait_for_emit) = match arguments_sql_operands[..] {
+                    ["implicit", "immediate"] => match (arguments_sql_types[1], rexw_prefix) {
+                        ("imm8", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                            format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[parameter1 as u8])"),
+                            format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>")
+                        ),
+                        ("imm16", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                            format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8])"),
+                            format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>")
+                        ),
+                        ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
+                            format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
+                            format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
+                        ),
+                        ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴) => (
+                            format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8])"),
+                            format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>")
+                        ),
+                        _ => panic!("Unsupported combination of instruction arguments and prefixes"),
+                    },
+                    ["reg", "rm"] => {
+                        let (instruction_trait, instruction_fn) = match rexw_prefix {
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[1].starts_with("address_16bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
+                                } else if arguments_sql_types[1].starts_with("address_32bit")
+                                    && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                    || arguments_sql_types[1].starts_with("norex_address_32bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
+                                } else if arguments_sql_types[1].starts_with("address")
+                                    || arguments_sql_types[1].starts_with("norex_address") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
+                                }
+                            }
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[1].starts_with("address") || arguments_sql_types[1].starts_with("norex_address") {
+                                    (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
+                                }
+                            }
+                        };
+                        (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter0,parameter1)"),
+                            format!("{instruction_trait}<{instruction_type}>")
+                        )
+                    }
+                    ["rm", "reg"] => {
+                        let (instruction_trait, instruction_fn) = match rexw_prefix {
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[0].starts_with("address_16bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
+                                } else if arguments_sql_types[0].starts_with("address_32bit")
+                                    && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                    || arguments_sql_types[0].starts_with("norex_address_32bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
+                                } else if arguments_sql_types[0].starts_with("address")
+                                    || arguments_sql_types[0].starts_with("norex_address") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
+                                }
+                            }
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[0].starts_with("address") || arguments_sql_types[0].starts_with("norex_address") {
+                                    (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
+                                }
+                            }
+                        };
+                        (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter1,parameter0)"),
+                            format!("{instruction_trait}<{instruction_type}>"))
+                    }
+                    ["rm", "immediate"] => {
+                        let 𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 = instruction
+                            .𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇
+                            .expect("Legacy instruction can not have rm operand without either reg operand or opcode extension");
+                        let (instruction_trait, instruction_fn) = match rexw_prefix {
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[0].starts_with("address_16bit")
+                                    || arguments_sql_types[0].starts_with("norex_address_16bit") {
+                                    (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_8086_memory_instruction_with_i")
+                                } else if arguments_sql_types[0].starts_with("address_32bit")
+                                   && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
+                                    || arguments_sql_types[0].starts_with("norex_address_32bit") {
+                                    (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_80386_memory_instruction_with_i")
+                                } else if arguments_sql_types[0].starts_with("address")
+                                    || arguments_sql_types[0].starts_with("norex_address") {
+                                    (   "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
+                                }
+                            }
+                            𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
+                                if arguments_sql_types[0].starts_with("address") || arguments_sql_types[0].starts_with("norex_address") {
+                                    (    "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i")
+                                } else {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
+                                }
+                            }
+                        };
+                        let immediate_size = &arguments_sql_types[1][3..];
+                        (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                            format!("{instruction_trait}<{instruction_type}>"))
+                    }
+                    _ => panic!("Unsupported combination of instruction arguments"),
+                };
+                let extra_trait = if need_extra_trait {
+                    format!("+𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓+{instruction_trait_for_emit}")
+                } else {
+                    "".to_owned()
+                };
+                for &xiz_version in process_xiz_version {
+                    let arguments_type = if xiz_version { &arguments_type_xiz } else { &arguments_type };
+
+                    for &unsized_memory in process_unsized_memory {
+                        let arguments_type_buffer;
+                        let arguments_type = if unsized_memory {
+                            let memory_size = memory_size.unwrap();
+                            arguments_type_buffer = arguments_type.replace(format!(",{memory_size}>").as_str(), ",0>");
+                            &arguments_type_buffer
+                        } else {
+                            arguments_type
+                        };
+
+                        if let 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 = assembler_kind {
+                            assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓{extra_trait}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒍𝒆𝒈𝒂𝒄𝒚_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_legacy_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
+                        } else {
+                            assembler_instructions.push(format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_ₓ86_64_𝒎𝒐𝒅𝒆_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_x86_64_mode(&mut self,({parameters_list}):{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}"));
+                        }
+                    }
+                }
+                for &unsized_memory in process_unsized_memory {
+                    let arguments_trait_type_buffer;
+                    let arguments_trait_type = if unsized_memory {
+                        let memory_size = memory_size.unwrap();
+                        arguments_trait_type_buffer = arguments_trait_type.replace(format!(",{memory_size}>").as_str(), ",0>");
+                        &arguments_trait_type_buffer
+                    } else {
+                        &arguments_trait_type
+                    };
+                    𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize].push(format!("{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{arguments_trait_type}>"));
+                }
             }
         }
     }
@@ -900,7 +942,9 @@ async fn get_database_connection() -> sqlx::SqliteConnection {
 
 fn get_insructions_info<'ᵉˣᵉᶜᵘᵗᵒʳ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮: sqlx::Database>(
     connection: impl sqlx::Executor<'ᵉˣᵉᶜᵘᵗᵒʳ, Database = 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮>,
+    operands_count: usize,
     assembler_kind: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞,
+    query: &'ᵉˣᵉᶜᵘᵗᵒʳ mut String,
 ) -> impl futures::stream::Stream<Item = Result<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞, sqlx::Error>>
        + 'ᵉˣᵉᶜᵘᵗᵒʳ
 where
@@ -920,29 +964,35 @@ where
 {
     let rust_types_map = assembler_kind.as_rust_types_map();
     let rust_types_map_xiz = assembler_kind.as_rust_types_map_xiz();
-    sqlx::query(indoc! {"
-            SELECT name0 AS name,
-                   operand0.parameter_type AS type0,
-                   trait0.name AS trait0,
-                   operand0.operand_source AS operand0,
-                   operand1.parameter_type AS type1,
-                   trait1.name AS trait1,
-                   operand1.operand_source AS operand1,
-                   MAX(IFNULL(instruction.data_size_prefix, ''),
-                       IFNULL(operand0.data_size_prefix, ''),
-                       IFNULL(operand1.data_size_prefix, '')) AS data_size_prefix,
-                   MAX(IFNULL(instruction.address_size_prefix, ''),
-                       IFNULL(operand0.address_size_prefix, ''),
-                       IFNULL(operand1.address_size_prefix, '')) AS address_size_prefix,
-                   opcode,
-                   opcode_extension
-            FROM (
-                SELECT *
+
+    let mut operand_requests = Vec::new();
+    let mut data_prefixes_selection = Vec::new();
+    let mut address_prefixes_selection = Vec::new();
+    let mut select_traits = Vec::new();
+    let mut operand_information = Vec::new();
+    let mut trait_information = Vec::new();
+    let mut combine_prefixes = Vec::new();
+    let mut assembler_kind_check = Vec::new();
+    let mut type_list = Vec::new();
+    for i in 0..operands_count {
+        operand_requests.push(format!(
+            "operand{i}.parameter_type AS type{i},trait{i}.name AS trait{i},operand{i}.operand_source AS operand{i},"
+        ));
+        data_prefixes_selection.push(format!(",IFNULL(operand{i}.data_size_prefix, '')"));
+        address_prefixes_selection.push(format!(",IFNULL(operand{i}.address_size_prefix, '')"));
+        let (prefix, suffix) = if i == 0 {
+            ("", "".to_owned())
+        } else {
+            (" LEFT JOIN", format!("ON name0 = name{i}"))
+        };
+        select_traits.push(formatdoc! {"
+            {prefix}(
+                SELECT name{i}, trait{i}
                 FROM (
-                    SELECT instruction.name AS name0, traits_information.name AS trait0, priority
+                    SELECT instruction.name AS name{i}, traits_information.name AS trait{i}, priority
                     FROM instruction LEFT JOIN
                          operands ON operands = short_name LEFT JOIN
-                         operand ON operand0 = operand.name LEFT JOIN
+                         operand ON operand{i} = operand.name LEFT JOIN
                          traits_information ON parameter_type = allowed_operand
                          LEFT JOIN traits_priority ON traits_information.name = traits_priority.name
                     WHERE instruction.assembler_kind IS NULL OR
@@ -951,107 +1001,110 @@ where
                     HAVING priority = MIN(priority)
                     ORDER BY instruction.name, operands, priority
                 )
-                GROUP BY name0
+                GROUP BY name{i}
                 HAVING priority = MAX(priority)
-                ORDER BY name0
-            ) LEFT JOIN (
-                SELECT *
-                FROM (
-                    SELECT instruction.name AS name1, traits_information.name AS trait1, priority
-                    FROM instruction LEFT JOIN
-                         operands ON operands = short_name LEFT JOIN
-                         operand ON operand1 = operand.name LEFT JOIN
-                         traits_information ON parameter_type = allowed_operand LEFT JOIN
-                         traits_priority ON traits_information.name = traits_priority.name
-                    WHERE instruction.assembler_kind IS NULL OR
-                          instruction.assembler_kind == $1
-                    GROUP BY instruction.name, operands
-                    HAVING priority = MIN(priority)
-                    ORDER BY instruction.name, operands, priority
-                )
-                GROUP BY name1
-                HAVING priority = MAX(priority)
-                ORDER BY name1
-            ) ON name0 = name1 LEFT JOIN
+                ORDER BY name{i}
+            ){suffix}"});
+        operand_information.push(format!(" LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name"));
+        trait_information.push(format!(
+            ",traits_information AS trait{i} ON trait{i} = trait{i}.name AND operand{i}.parameter_type = trait{i}.allowed_operand"
+        ));
+        for j in 0..i {
+            combine_prefixes.push(formatdoc! {"
+                AND (operand{i}.data_size_prefix = operand{j}.data_size_prefix OR
+                     operand{i}.data_size_prefix IS NULL OR
+                     operand{j}.data_size_prefix IS NULL)
+                AND (operand{i}.address_size_prefix = operand{j}.address_size_prefix OR
+                     operand{i}.address_size_prefix IS NULL OR
+                     operand{j}.address_size_prefix IS NULL)"});
+        }
+        assembler_kind_check.push(format!(
+            "AND (operand{i}.assembler_kind IS NULL OR operand{i}.assembler_kind = $1)"
+        ));
+        type_list.push(format!(", type{i}"));
+    }
+    let operand_requests = operand_requests.concat();
+    let data_prefixes_selection = data_prefixes_selection.concat();
+    let address_prefixes_selection = address_prefixes_selection.concat();
+    let select_traits = select_traits.concat();
+    let operand_information = operand_information.concat();
+    let trait_information = trait_information.concat();
+    let combine_prefixes = combine_prefixes.concat();
+    let assembler_kind_check = assembler_kind_check.concat();
+    let type_list = type_list.concat();
+    let operand_count_check = if operands_count == 5 {
+        "".to_owned()
+    } else {
+        format!("AND operands.operand{operands_count} IS NULL")
+    };
+    *query = formatdoc! {"
+            SELECT name0 AS name,
+                   {operand_requests}
+                   MAX(IFNULL(instruction.data_size_prefix, '') {data_prefixes_selection}) AS data_size_prefix,
+                   MAX(IFNULL(instruction.address_size_prefix, '') {address_prefixes_selection}) AS address_size_prefix,
+                   opcode,
+                   opcode_extension
+            FROM {select_traits} LEFT JOIN
             instruction ON name0 = instruction.name LEFT JOIN
-            operands ON operands = short_name LEFT JOIN
-            operand AS operand0 ON operand0 = operand0.name LEFT JOIN
-            operand AS operand1 ON operand1 = operand1.name,
-            traits_information AS trait0 ON trait0 = trait0.name AND operand0.parameter_type = trait0.allowed_operand,
-            traits_information AS trait1 ON trait1 = trait1.name AND operand1.parameter_type = trait1.allowed_operand
-            WHERE (instruction.assembler_kind IS NULL OR
-                   instruction.assembler_kind == $1) AND
-                  (operand0.data_size_prefix = operand1.data_size_prefix OR
-                   operand0.data_size_prefix IS NULL OR
-                   operand1.data_size_prefix IS NULL) AND
-                  (operand0.assembler_kind IS NULL OR operand0.assembler_kind = $1) AND
-                  (operand1.assembler_kind IS NULL OR operand1.assembler_kind = $1)
-            GROUP BY name0, type0, type1
+            operands ON operands = short_name
+            {operand_information}
+            {trait_information}
+            WHERE (instruction.assembler_kind IS NULL OR instruction.assembler_kind == $1)
+                  {combine_prefixes}
+                  {assembler_kind_check}
+                  {operand_count_check}
+            GROUP BY instruction.name {type_list}
             HAVING operands = MIN(operands)
-            ORDER BY name0, type0, type1;"})
-    .bind(assembler_kind.as_str())
-    .fetch(connection)
-    .map(|row| {
-        use sqlx::Row;
+            ORDER BY instruction.name {type_list};"};
+    sqlx::query(query.as_str())
+        .bind(assembler_kind.as_str())
+        .fetch(connection)
+        .map(move |row| {
+            use sqlx::Row;
 
-        let row = row?;
-        let instruction_name: String = row.try_get("name")?;
-        let instruction_argument0: String = row.try_get("type0")?;
-        let instruction_argument1: String = row.try_get("type1")?;
-        let instruction_argument0_trait: String = row.try_get("trait0")?;
-        let instruction_argument1_trait: String = row.try_get("trait1")?;
-        let instruction_operand0: String = row.try_get("operand0")?;
-        let instruction_operand1: String = row.try_get("operand1")?;
+            let row = row?;
+            let instruction_name: String = row.try_get("name")?;
+            let instruction_trait_name = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
 
-        let instruction_trait_name = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
-        let instruction_argument0_type = *rust_types_map
-            .get(instruction_argument0.as_str())
-            .expect("Failed to convert sql type to rust type");
-        let instruction_argument0_type_xiz = rust_types_map_xiz.get(instruction_argument0.as_str()).copied();
-        let instruction_argument1_type = *rust_types_map
-            .get(instruction_argument1.as_str())
-            .expect("Failed to convert sql type to rust type");
-        let instruction_argument1_type_xiz = rust_types_map_xiz.get(instruction_argument1.as_str()).copied();
-        let instruction_argument0_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
-            .get(instruction_argument0_trait.as_str())
-            .expect("Failed to convert sql type to rust type");
-        let instruction_argument0_trait_type = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
-            .get(instruction_argument0.as_str())
-            .expect("Failed to convert sql type to rust type");
-        let instruction_argument1_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
-            .get(instruction_argument1_trait.as_str())
-            .expect("Failed to convert sql type to rust type");
-        let instruction_argument1_trait_type = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
-            .get(instruction_argument1.as_str())
-            .expect("Failed to convert sql type to rust type");
+            let mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = Vec::new();
+            for i in 0..operands_count {
+                const TYPE: [&'static str; 5] = ["type0", "type1", "type2", "type3", "type4"];
+                let argument: String = row.try_get(TYPE[i])?;
+                const TRAIT: [&'static str; 5] = ["trait0", "trait1", "trait2", "trait3", "trait4"];
+                let argument_trait: String = row.try_get(TRAIT[i])?;
+                const OPERAND: [&'static str; 5] = ["operand0", "operand1", "operand2", "operand3", "operand4"];
+                let operand: String = row.try_get(OPERAND[i])?;
 
-        Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
-            𝖿𝗇_𝗇𝖺𝗆𝖾: instruction_name,
-            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: instruction_trait_name,
-            𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("data_size_prefix")?,
-            𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("address_size_prefix")?,
-            𝗈𝗉𝖼𝗈𝖽𝖾: row.try_get("opcode")?,
-            𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇: row.try_get("opcode_extension")?,
-            𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌: vec![
-                𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
-                    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: instruction_argument0,
-                    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: instruction_operand0,
-                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: instruction_argument0_type,
-                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: instruction_argument0_type_xiz,
-                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: instruction_argument0_trait,
-                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾: instruction_argument0_trait_type,
-                },
-                𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
-                    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: instruction_argument1,
-                    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: instruction_operand1,
-                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: instruction_argument1_type,
-                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: instruction_argument1_type_xiz,
-                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: instruction_argument1_trait,
-                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾: instruction_argument1_trait_type,
-                },
-            ],
+                let argument_type = *rust_types_map
+                    .get(argument.as_str())
+                    .expect("Failed to convert sql type to rust type");
+                let argument_type_xiz = rust_types_map_xiz.get(argument.as_str()).copied();
+                let argument_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
+                    .get(argument_trait.as_str())
+                    .expect("Failed to convert sql type to rust type");
+                let argument_trait_type = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
+                    .get(argument.as_str())
+                    .expect("Failed to convert sql type to rust type");
+                𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.push(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
+                    𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: argument,
+                    𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: operand,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: argument_type,
+                    𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾_ₓ𝔦𝔷: argument_type_xiz,
+                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: argument_trait,
+                    𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾: argument_trait_type,
+                });
+            }
+
+            Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+                𝖿𝗇_𝗇𝖺𝗆𝖾: instruction_name,
+                𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: instruction_trait_name,
+                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("data_size_prefix")?,
+                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑: row.try_get("address_size_prefix")?,
+                𝗈𝗉𝖼𝗈𝖽𝖾: row.try_get("opcode")?,
+                𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇: row.try_get("opcode_extension")?,
+                𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌,
+            })
         })
-    })
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
