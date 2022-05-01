@@ -272,9 +272,12 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     }
 }
 
-// Note: currently the longets known ₓ86_64 instruction is 𝔵𝔯𝔢𝔩𝔢𝔞𝔰𝔢 𝔩𝔬𝔠𝔨 𝔞𝔡𝔡 %𝔣𝔰:𝔮𝔴𝔬𝔯𝔡 𝔭𝔱𝔯 [1234 + %𝔯8𝔡 + %𝔯9𝔡] which 16 bytes long
-// (and thus is rejected by most CPUs).  But there are certain impossible combinations of prefixes/options which are longer.
-// Thus we need to prove 𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<17>..=𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<21>.
+// Note: currently the longest known ₓ86_64 instruction is 𝔵𝔯𝔢𝔩𝔢𝔞𝔰𝔢 𝔩𝔬𝔠𝔨 𝔞𝔡𝔡 %𝔣𝔰:𝔮𝔴𝔬𝔯𝔡 𝔭𝔱𝔯 [1234 + %𝔯8𝔡 + %𝔯9𝔡], 1234 — it's
+// 16 bytes long (and thus is rejected by most CPUs).
+//
+// But there are certain impossible combinations of prefixes/options which are longer.
+//
+// Thus we need to provide 𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<17>..=𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<21>.
 impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓> 𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<17> for 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮 {
     #[cfg(has_i128)]
     #[inline(always)]
