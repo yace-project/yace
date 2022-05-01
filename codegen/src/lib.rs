@@ -951,16 +951,23 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     }
                     // These six instructions are filling ³⁄₁₆ of the opcode table.
                     // There probably would never be any others, but better to verify.
-                    ["opcode"] => match (𝖿𝗇_𝗇𝖺𝗆𝖾, &arguments_sql_types[..]) {
-                        ("dec" | "inc" | "pop" | "push", ["gp_register_16bit"] | ["gp_register_32bit"]) => (
+                    ["opcode"] => match (𝖿𝗇_𝗇𝖺𝗆𝖾, &arguments_sql_types[..], assembler_kind) {
+                        ("bswap" | "dec" | "inc" | "pop" | "push", ["gp_register_16bit"] | ["gp_register_32bit"], 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶) => (
                             format!("let 𝗋𝖾𝗀:u8=parameter0.into();<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}|𝗋𝖾𝗀])", 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾),
                             format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>"),
                         ),
-                        ("pop" | "push", ["gp_register_64bit"]) => (
+                        ("bswap", ["gp_register_64bit"], 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64) => (
+                            format!("let 𝗋𝖾𝗀:u8=parameter0.into();if(𝗋𝖾𝗀&8)!=0{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_rex_and_opcodes(self,0x49,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}|(𝗋𝖾𝗀&0x7)])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_rex_and_opcodes(self,0x48,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}|(𝗋𝖾𝗀&0x7)])}}", 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾),
+                            format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>"),
+                        ),
+                        ("bswap", ["gp_register_16bit"] | ["gp_register_32bit"], 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64) |
+                        ("pop" | "push", ["gp_register_16bit" | "gp_register_64bit"], 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64) => (
                             format!("let 𝗋𝖾𝗀:u8=parameter0.into();if(𝗋𝖾𝗀&8)!=0{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_rex_and_opcodes(self,0x41,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}|(𝗋𝖾𝗀&0x7)])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}|(𝗋𝖾𝗀&0x7)])}}", 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾),
                             format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>"),
                         ),
-                        ("pop" | "popd" | "popq" | "popw" | "push" | "pushd" | "pushq" | "pushw", ["legacy_segment_register_no_cs" | "segment_register_no_cs"]) => {
+                        ("pop" | "popd" | "popq" | "popw" | "push" | "pushd" | "pushq" | "pushw",
+                         ["legacy_segment_register_no_cs" | "segment_register_no_cs"],
+                         𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 | 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64) => {
                             let 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾;
                             let instruction_no_fs_gs = instruction_type.replace("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x0f>", "𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞");
                             let opcode_no_fs_gs = 𝗈𝗉𝖼𝗈𝖽𝖾 - 0x60;
