@@ -263,7 +263,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_
             impl<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> From<$𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮> for core::num::Wrapping<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> where 𝓲𝓷𝓽_𝓽𝔂𝓹𝓮: From<$𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮> {
                 #[inline(always)]
                 fn from(value: $𝓽𝔂𝓹𝓮_𝓷𝓪𝓶𝓮) -> core::num::Wrapping<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮> {
-                    core::num::Wrapping(Into::<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>::into(value))
+                    core::num::Wrapping(core::convert::Into::<𝓲𝓷𝓽_𝓽𝔂𝓹𝓮>::into(value))
                 }
             }
 

@@ -14,6 +14,8 @@
 
 #![allow(uncommon_codepoints)]
 #![allow(non_camel_case_types)]
+// Prevent: identifier pair considered confusable between `𝑰𝒏𝒕𝒐` and `Into`. Unfortunately it's crate-level lint.
+#![allow(confusable_idents)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[path = "assembler/mod.rs"]

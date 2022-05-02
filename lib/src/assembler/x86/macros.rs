@@ -12,7 +12,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#[macro_export]
 macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖆𝖘𝖘𝖊𝖒𝖇𝖑𝖊𝖗_𝖙𝖗𝖆𝖎𝖙 {
     (   $𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓻𝓮𝓼𝓽𝓻𝓲𝓬𝓽𝓲𝓸𝓷𝓼:tt
         pub trait $𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝓻𝓪𝓲𝓽_𝓷𝓪𝓶𝓮:ident {
