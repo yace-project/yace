@@ -24,7 +24,7 @@ use {
     maplit::hashmap,
     once_cell::sync::Lazy,
     proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree},
-    std::collections::{HashMap, HashSet},
+    std::collections::{BTreeMap, HashMap, HashSet},
 };
 
 // Note: the use of that macro is a bit unusial. It works like this:
@@ -51,8 +51,7 @@ use {
 //     Ξ𝔷𝔷 — expaded if 𝔞𝔡𝔡𝔯64 with ₐᵥₓ512 mode requested.
 //     Χ𝔷𝔷 — expaded if 𝔞𝔡𝔡𝔯64 with ₐᵥₓ512 mode not requested.
 // Additional expandable markers:
-//     𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖 — List of instructions from SQL database
-//     𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕖𝕣𝕤 — Forwarders to Xₓₓ
+//     𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖 — extra clauses for the list of instructions from SQL database
 //     𝕃𝕖𝕘𝕒𝕔𝕪𝕄𝕠𝕕𝕖𝔸𝕤𝕤𝕖𝕞𝕓𝕝𝕖𝕣 — 𝐝𝐚𝐭𝐚_𝐩𝐫𝐞𝐟𝐢𝐱_{16,32}ᵇⁱᵗ and 𝐚𝐝𝐝𝐫𝐞𝐬𝐬_𝐩𝐫𝐞𝐟𝐢𝐱_{16,32}ᵇⁱᵗ
 #[proc_macro]
 pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items: TokenStream) -> TokenStream {
@@ -122,7 +121,7 @@ pub fn 𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘(items:
     };
 
     let mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = TokenStream::new();
-    filter_x86_markers_iterable(&mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌, &mut main_group_iter, attributes);
+    filter_x86_markers_iterable(&mut 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌, &mut None, &mut main_group_iter, attributes);
     let mut result = TokenStream::new();
     result.extend([
         TokenTree::Ident(macro_name),
@@ -258,6 +257,7 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
 struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
     𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾: Option<TokenTree>,
     𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: Option<TokenTree>,
+    𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑: Option<String>,
     𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: Option<TokenStream>,
     𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: Option<TokenStream>,
 }
@@ -266,15 +266,19 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
     // Note: it's not an error to have unparseable data after initial, mandatory, group.
     // We just don't get extra info in that case.
     fn new(input: &mut impl Iterator<Item = TokenTree>) -> Result<Self, &'static str> {
-        match input.next() {
-            Some(TokenTree::Ident(impl_ident)) if impl_ident.to_string() == "impl" => (),
-            _ => return Ok(Default::default()),
-        }
         let (restrictions_stream, mut next_item) = match input.next() {
-            Some(TokenTree::Group(restrictions_group)) if matches!(restrictions_group.delimiter(), Delimiter::Bracket) => {
-                (Some(restrictions_group.stream()), input.next())
-            }
-            next_item => (None, next_item),
+            Some(TokenTree::Ident(pub_ident)) if pub_ident.to_string() == "pub" => match input.next() {
+                Some(TokenTree::Ident(trait_ident)) if trait_ident.to_string() == "trait" => (None, input.next()),
+
+                _ => return Ok(Default::default()),
+            },
+            Some(TokenTree::Ident(impl_ident)) if impl_ident.to_string() == "impl" => match input.next() {
+                Some(TokenTree::Group(restrictions_group)) if matches!(restrictions_group.delimiter(), Delimiter::Bracket) => {
+                    (Some(restrictions_group.stream()), input.next())
+                }
+                next_item => (None, next_item),
+            },
+            _ => return Ok(Default::default()),
         };
         let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = match next_item {
             Some(TokenTree::Ident(_)) => next_item,
@@ -291,9 +295,36 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
             }
             _ => return Ok(Default::default()),
         };
+        let 𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑 = {
+            let Some(TokenTree::Ident(ref 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 else {
+                return Ok(Default::default());
+            };
+            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_string();
+            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_bytes();
+            let mut index = 0;
+            while index < 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.len() {
+                // SAFETY: guaranteed by while check.
+                if unsafe { *𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.get_unchecked(index) } == '_' as u8 {
+                    break;
+                }
+                index += 1;
+            }
+            // SAFETY: guaranteed by UTF-8.
+            Some(unsafe {
+                String::from_utf8_unchecked(𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾[index..𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.len()].to_vec())
+            })
+        };
         match input.next() {
             Some(TokenTree::Ident(for_ident)) if for_ident.to_string() == "for" => (),
-            _ => return Ok(Default::default()),
+            _ => {
+                return Ok(𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
+                    𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾: None,
+                    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾,
+                    𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑,
+                    𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: restrictions_stream,
+                    𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: None,
+                })
+            }
         }
         next_item = input.next();
         let 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 = match next_item {
@@ -320,44 +351,40 @@ impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫�
         Ok(𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
             𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾,
             𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾,
+            𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑,
             𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: restrictions_stream,
             𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: params_stream,
         })
     }
 }
 
+impl From<Option<core::num::NonZeroI8>> for 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
+    fn from(size: Option<core::num::NonZeroI8>) -> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
+        match size {
+            value if value == core::num::NonZeroI8::new(64) => 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64,
+            _ => 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶,
+        }
+    }
+}
+
 fn filter_x86_markers_iterable(
     output: &mut impl Extend<TokenTree>,
+    output_extra: &mut Option<TokenStream>,
     input: &mut impl Iterator<Item = TokenTree>,
     attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
 ) {
     fn emit_or_expand_token(
-        output: &mut impl Extend<TokenTree>, token: TokenTree, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
+        output: &mut impl Extend<TokenTree>,
+        output_extra: &mut Option<TokenStream>,
+        token: TokenTree,
+        attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
     ) {
         let TokenTree::Ident(ref ident) = token else {
+            output_extra.as_mut().map(|output| output.extend([token.clone()]));
             return output.extend([token])
         };
 
         match ident.to_string().as_ref() {
-            "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" => {
-                let additional_info: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64)
-                {
-                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize]
-                        .𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
-                        .parse()
-                        .unwrap()
-                } else {
-                    𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize]
-                        .𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
-                        .parse()
-                        .unwrap()
-                };
-                output.extend(additional_info)
-            }
-            "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕖𝕣𝕤" => {
-                let forwarders: TokenStream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.parse().unwrap();
-                output.extend(forwarders)
-            }
             "𝕃𝕖𝕘𝕒𝕔𝕪𝕄𝕠𝕕𝕖𝔸𝕤𝕤𝕖𝕞𝕓𝕝𝕖𝕣" => {
                 if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 != core::num::NonZeroI8::new(64) {
                     let token_stream: TokenStream = format!(
@@ -394,32 +421,38 @@ fn filter_x86_markers_iterable(
                             TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
                                 if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
                                 {
+                                    output_extra
+                                        .as_mut()
+                                        .map(|output| output.extend(𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter()));
                                     output.extend(𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter())
                                 }
                             }
                             TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
                                 if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
                                 {
+                                    output_extra.as_mut().map(|output| output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()]));
                                     output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()])
                                 }
                                 if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
                                 {
+                                    output_extra
+                                        .as_mut()
+                                        .map(|output| output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter()));
                                     output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter())
                                 }
                             }
-                            _ => output.extend([token]),
+                            _ => {
+                                output_extra.as_mut().map(|output| output.extend([token.clone()]));
+                                output.extend([token])
+                            }
                         }
                     }
                 }
-                let token_stream: TokenStream = if attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾 == core::num::NonZeroI8::new(64) {
-                    &𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌
-                } else {
-                    &𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
-                        [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize]
-                        .𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌
-                }
-                .parse()
-                .unwrap();
+                let token_stream: TokenStream = (&𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
+                    [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾) as usize]
+                    .𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌)
+                    .parse()
+                    .unwrap();
                 for token in token_stream.into_iter() {
                     match token {
                         TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
@@ -428,72 +461,159 @@ fn filter_x86_markers_iterable(
                                 let mut previous_token = None;
                                 for token in 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter() {
                                     if let Some(previous_token) = previous_token.replace(token) {
+                                        output_extra.as_mut().map(|output| output.extend([previous_token.clone()]));
                                         output.extend([previous_token]);
                                     }
                                 }
                                 let token_stream: TokenStream = ",".parse().unwrap();
+                                output_extra
+                                    .as_mut()
+                                    .map(|output| output.extend(token_stream.clone().into_iter()));
                                 output.extend(token_stream.into_iter());
                             } else {
                                 let token_stream: TokenStream = "<".parse().unwrap();
+                                output_extra
+                                    .as_mut()
+                                    .map(|output| output.extend(token_stream.clone().into_iter()));
                                 output.extend(token_stream.into_iter());
                             }
                         }
                         TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
                             if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
                             {
+                                output_extra.as_mut().map(|output| output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()]));
                                 output.extend([𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()])
                             }
                             if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
                             {
+                                output_extra
+                                    .as_mut()
+                                    .map(|output| output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter()));
                                 output.extend(𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter())
                             }
                         }
-                        _ => output.extend([token]),
+                        _ => {
+                            output_extra.as_mut().map(|output| output.extend([token.clone()]));
+                            output.extend([token])
+                        }
                     }
                 }
             }
-            _ => output.extend([token]),
+            _ => {
+                output_extra.as_mut().map(|output| output.extend([token.clone()]));
+                output.extend([token])
+            }
         }
     }
+
+    let mut instructions_interface: Option<TokenStream> = None;
     let mut last_token: Option<TokenTree> = None;
     for token in input {
         if let Some(unwrapped_token) = last_token.take() {
             match token {
                 TokenTree::Group(mut data_group_to_process) if matches!(data_group_to_process.delimiter(), Delimiter::Bracket) => {
-                    match marker_is_compatible(unwrapped_token.to_string().as_ref(), attributes) {
-                        (Some(true), attributes) => {
-                            filter_x86_markers_iterable(output, &mut data_group_to_process.stream().into_iter(), attributes)
-                        }
+                    let unwrapped_token_str = unwrapped_token.to_string();
+                    let unwrapped_token_ref = unwrapped_token_str.as_ref();
+                    match marker_is_compatible(unwrapped_token_ref, attributes) {
+                        (Some(true), attributes) => filter_x86_markers_iterable(
+                            output,
+                            output_extra,
+                            &mut data_group_to_process.stream().into_iter(),
+                            attributes,
+                        ),
                         (Some(false), _) => (),
+                        (None, _) if unwrapped_token_ref == "𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖" =>
+                        {
+                            if instructions_interface.is_some() {
+                                panic!("Two 𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖 markers detected!");
+                            }
+                            instructions_interface.replace(TokenStream::new());
+                            filter_x86_markers_iterable(
+                                output,
+                                &mut instructions_interface,
+                                &mut data_group_to_process.stream().into_iter(),
+                                attributes,
+                            );
+                            output_extra.as_mut().map({
+                                let instructions_interface = instructions_interface.clone();
+                                |output| output.extend(instructions_interface.unwrap())
+                            });
+                        }
                         (None, _) => {
-                            emit_or_expand_token(output, unwrapped_token, attributes);
-                            output.extend([filter_x86_markers_group(&mut data_group_to_process, attributes)])
+                            emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
+                            let filered_content = [filter_x86_markers_group(&mut data_group_to_process, attributes)];
+                            output_extra.as_mut().map(|output| output.extend(filered_content.clone()));
+                            output.extend(filered_content);
                         }
                     }
                 }
                 TokenTree::Group(mut data_group_to_process) => {
-                    emit_or_expand_token(output, unwrapped_token, attributes);
-                    output.extend([filter_x86_markers_group(&mut data_group_to_process, attributes)])
+                    emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
+                    let filered_content = [filter_x86_markers_group(&mut data_group_to_process, attributes)];
+                    output_extra.as_mut().map(|output| output.extend(filered_content.clone()));
+                    output.extend(filered_content);
                 }
                 TokenTree::Ident(_) => {
-                    emit_or_expand_token(output, unwrapped_token, attributes);
+                    emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
                     last_token = Some(token)
                 }
                 _ => {
-                    emit_or_expand_token(output, unwrapped_token, attributes);
+                    emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
+                    output_extra.as_mut().map(|output| output.extend([token.clone()]));
                     output.extend([token])
                 }
             }
         } else if let TokenTree::Ident(_) = token {
             last_token = Some(token)
         } else if let TokenTree::Group(mut data_group_to_process) = token {
-            output.extend([filter_x86_markers_group(&mut data_group_to_process, attributes)])
+            let filered_content = [filter_x86_markers_group(&mut data_group_to_process, attributes)];
+            output_extra.as_mut().map(|output| output.extend(filered_content.clone()));
+            output.extend(filered_content);
         } else {
+            output_extra.as_mut().map(|output| output.extend([token.clone()]));
             output.extend([token])
         }
     }
     if let Some(unwrapped_token) = last_token.take() {
-        emit_or_expand_token(output, unwrapped_token, attributes);
+        emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
+    }
+    if let Some(instructions_interface) = instructions_interface {
+        let token_stream: TokenStream = (𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
+            [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(attributes.𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾) as usize]
+            .𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+            .replace(
+                "⋇",
+                &attributes
+                    .𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌
+                    .𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑
+                    .as_ref()
+                    .expect("Trait must be accessible when 𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖 used"),
+            ))
+        .parse()
+        .unwrap();
+        for token in token_stream.into_iter() {
+            match token {
+                TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
+                    let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = attributes
+                        .𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌
+                        .𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾
+                        .as_ref()
+                        .expect("Trait must be accessible when 𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤𝕀𝕟𝕥𝕖𝕣𝕗𝕒𝕔𝕖 used");
+                    output_extra.as_mut().map(|output| output.extend([𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.clone()]));
+                    output.extend([𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.clone()])
+                }
+                TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
+                    output_extra
+                        .as_mut()
+                        .map(|output| output.extend(instructions_interface.clone()));
+                    output.extend(instructions_interface.clone())
+                }
+                _ => {
+                    output_extra.as_mut().map(|output| output.extend([token.clone()]));
+                    output.extend([token])
+                }
+            }
+        }
     }
 }
 
@@ -501,7 +621,7 @@ fn filter_x86_markers_group(
     input: &mut Group, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
 ) -> TokenTree {
     let mut content = TokenStream::new();
-    filter_x86_markers_iterable(&mut content, &mut input.stream().into_iter(), attributes);
+    filter_x86_markers_iterable(&mut content, &mut None, &mut input.stream().into_iter(), attributes);
     Group::new(input.delimiter(), content).into()
 }
 
@@ -546,9 +666,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
     let mut kind_specific_traits = [HashSet::new(), HashSet::new()];
 
     let mut x86_assembler_instructions = Vec::new();
-    let mut 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌 = Vec::new();
     let mut assembler_instructions = [Vec::new(), Vec::new()];
-    let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = [Vec::new(), Vec::new()];
+    let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = [BTreeMap::new(), BTreeMap::new()];
     let mut 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌 = [Vec::new(), Vec::new()];
 
     let mut connection = get_database_connection().await;
@@ -593,6 +712,11 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 }
 
                 let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
+                let fn_name_adjusted = match 𝖿𝗇_𝗇𝖺𝗆𝖾 {
+                    "in" => "r#in",
+                    "loop" => "r#loop",
+                    _ => 𝖿𝗇_𝗇𝖺𝗆𝖾,
+                };
 
                 let legacy_push_segment = 𝖿𝗇_𝗇𝖺𝗆𝖾.starts_with("push")
                     && arguments_sql_types.len() == 1
@@ -604,22 +728,14 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
 
                 if instruction_trait.insert(𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                    let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
+                    let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {fn_name_adjusted}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
                     let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
-                    let fn_name_adjusted = match 𝖿𝗇_𝗇𝖺𝗆𝖾 {
-                        "in" => "r#in",
-                        "loop" => "r#loop",
-                        _ => 𝖿𝗇_𝗇𝖺𝗆𝖾,
-                    };
-                    let instruction_implementation = format!("#[inline(always)]fn {fn_name_adjusted}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as super::𝘅𝟴𝟲::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as super::𝘅𝟴𝟲::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:super::𝘅𝟴𝟲::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(arguments)}}");
                     if x87_instruction_wait_prefix {
                         x86_assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&instructions_trait));
                         x86_assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_trait));
-                        𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_implementation));
                     }
                     x86_assembler_instructions.push(instructions_trait);
                     x86_assembler_instructions.push(instruction_trait);
-                    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.push(instruction_implementation);
                 }
 
                 if instruction_traits.insert((𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned(), arguments_count)) {
@@ -643,7 +759,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     let parameters_type_list = parameters_type_list.join(",");
                     let parameters_list = parameters_list.join(",");
                     let parameters_convert_into = parameters_convert_into.join(",");
-                    let impl_instruction = format!("impl<{parameter_types_list}𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<({parameters_type_list}{arguments_comma})>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{#[allow(clippy::type_complexity)]type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;#[allow(clippy::type_complexity)]type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_forwarder(&mut self,({parameters_list}{arguments_comma}):({parameters_type_list}{arguments_comma}))->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(({parameters_convert_into}{arguments_comma}))}}}}");
+                    let impl_instruction = format!("impl<{parameter_types_list}𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<({parameters_type_list}{arguments_comma})>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{#[allow(clippy::type_complexity)]type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;#[allow(clippy::type_complexity)]type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {fn_name_adjusted}(&mut self,({parameters_list}{arguments_comma}):({parameters_type_list}{arguments_comma}))->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(({parameters_convert_into}{arguments_comma}))}}}}");
                     if x87_instruction_wait_prefix {
                         x86_assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&impl_instruction));
                     }
@@ -1404,31 +1520,44 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         &arguments_trait_type
                     };
 
-                    let instruction_info = format!("{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_trait_type}>");
-                    if legacy_push_segment {
-                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
-                            .push(instruction_info.clone().replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫"));
-                    }
+                    let instruction_info: String = format!("𝘅𝟴𝟲::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<{arguments_trait_type}>");
                     if x87_instruction_wait_prefix {
-                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize].push(instruction_info.clone().replace("𝒇𝒏", "𝒇"));
+                        let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
+                            .entry((𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.replace("𝑭𝒏", "𝑭"), fn_name_adjusted.replace("fn", "f")))
+                            .or_insert_with(|| Vec::new());
+                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.clone().replace("𝘅𝟴𝟲::𝑭𝒏", "𝘅𝟴𝟲::𝑭"));
                     }
-                    𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize].push(instruction_info);
+                    let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
+                        .entry((𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), fn_name_adjusted.to_owned()))
+                        .or_insert_with(|| Vec::new());
+                    if legacy_push_segment {
+                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.clone().replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫"));
+                    }
+                    𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info);
                 }
             }
         }
     }
 
+    let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.map(|traits_info| {
+        let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = Vec::new();
+        for ((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾, 𝖿𝗇_𝗇𝖺𝗆𝖾), trait_info) in traits_info {
+             let trait_info = trait_info.join("+");
+             𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)}}}}impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇ for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}"));
+        }
+        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+    });
+
     return 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
         𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: x86_assembler_instructions.concat(),
-        𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌.concat(),
         𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈: [
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
-                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].join(" + "),
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔩𝔢𝔤𝔞𝔠𝔶 as usize].concat(),
             },
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
-                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].join(" + "),
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64 as usize].concat(),
             },
@@ -3418,7 +3547,6 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64_𝔴𝔦𝔱𝔥_𝔯𝔦
 
 struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
     𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: String,
-    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇𝗌: String,
     // These are indexed by 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 as usize.
     𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈: [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞; 2],
 }
