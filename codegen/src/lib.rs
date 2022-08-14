@@ -667,6 +667,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
     let mut x86_assembler_instructions = Vec::new();
     let mut assembler_instructions = [Vec::new(), Vec::new()];
+    let mut leaf_assembler_instructions = [BTreeMap::new(), BTreeMap::new()];
     let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = [BTreeMap::new(), BTreeMap::new()];
     let mut 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌 = [Vec::new(), Vec::new()];
 
@@ -728,8 +729,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
 
                 if instruction_trait.insert(𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                    let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {fn_name_adjusted}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
-                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
+                    let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {fn_name_adjusted}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
+                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
                     if x87_instruction_wait_prefix {
                         x86_assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&instructions_trait));
                         x86_assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_trait));
@@ -767,8 +768,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 }
 
                 if kind_specific_traits[assembler_kind as usize].insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
-                    let instruction_impl = format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_with(arguments)}}}}");
+                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
+                    let instruction_impl = format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_with(arguments)}}}}");
                     if x87_instruction_wait_prefix {
                         assembler_instructions[assembler_kind as usize]
                             .push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_trait));
@@ -808,6 +809,9 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     arguments_trait_type.push(𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾);
 
                     let 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾 = argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str();
+                    // Note that if operand is of unknown size (e.g. 𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥 then we shouldn't say that operand_size is Come(0).
+                    // This is important because if we do that we would try to turn _0bit into _0bit and instruction with clash
+                    // with itself and would be forbidden!).
                     let operand_size = if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_8bit") {
                         Some(1)
                     } else if 𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.ends_with("_16bit") {
@@ -862,15 +866,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let arguments_type_xiz = format!("({}{arguments_comma})", arguments_type_xiz.join(","));
                 let arguments_trait_type = format!("({}{arguments_comma})", arguments_trait_type.join(","));
                 let parameters_list = format!("({}{arguments_comma})", parameters_list.join(","));
-                let process_unsized_memory = if let "ins" | "outs" = 𝖿𝗇_𝗇𝖺𝗆𝖾 {
-                    &[false][..]
-                } else if let (
-                    "bound" | "lar" | "lgdt" | "lidt" | "lldt" | "lsl" | "ltr" | "sgdt" | "sidt" | "sldt" | "str" | "verr" | "verw",
-                    Some(_),
-                ) = (𝖿𝗇_𝗇𝖺𝗆𝖾, memory_size)
-                {
-                    &[false, true][..]
-                } else if memory_size.is_some() && memory_size == non_memory_size {
+                let process_unsized_memory = if memory_size.is_some() {
                     &[false, true][..]
                 } else {
                     &[false][..]
@@ -1491,9 +1487,15 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         };
 
                         let instruction_info =
-                            format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓{extra_trait}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,{parameters_list}:{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}");
+                            format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓{extra_trait}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,{parameters_list}:{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}");
                         if legacy_push_segment {
-                            assembler_instructions[assembler_kind as usize].push(
+                            let assembler_instructions = leaf_assembler_instructions[assembler_kind as usize]
+                                .entry((
+                                    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(),
+                                    arguments_type.replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8086"),
+                                ))
+                                .or_insert_with(|| Vec::new());
+                            assembler_instructions.push(
                                 instruction_info
                                     .clone()
                                     .replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8086"),
@@ -1501,12 +1503,19 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         }
 
                         if x87_instruction_wait_prefix {
-                            assembler_instructions[assembler_kind as usize]
-                                .push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_info));
-                            assembler_instructions[assembler_kind as usize]
-                                .push(instruction_info.replace("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x9b>", "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱"));
+                            let assembler_instructions = leaf_assembler_instructions[assembler_kind as usize]
+                                .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.replace("𝒇𝒏", "𝒇"), arguments_type.to_owned()))
+                                .or_insert_with(|| Vec::new());
+                            assembler_instructions.push(x86_fnₓ_instruction_to_fₓ_instruction(&instruction_info));
+                            let assembler_instructions = leaf_assembler_instructions[assembler_kind as usize]
+                                .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), arguments_type.to_owned()))
+                                .or_insert_with(|| Vec::new());
+                            assembler_instructions.push(instruction_info.replace("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x9b>", "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱"));
                         } else {
-                            assembler_instructions[assembler_kind as usize].push(instruction_info);
+                            let assembler_instructions = leaf_assembler_instructions[assembler_kind as usize]
+                                .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), arguments_type.to_owned()))
+                                .or_insert_with(|| Vec::new());
+                            assembler_instructions.push(instruction_info);
                         }
                     }
                 }
@@ -1514,7 +1523,10 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     let arguments_trait_type_buffer;
                     let arguments_trait_type = if unsized_memory {
                         let memory_size = memory_size.unwrap();
-                        arguments_trait_type_buffer = arguments_trait_type.replace(format!(",{memory_size}>").as_str(), ",0>");
+                        let far_memory_size = format!("{{-{}isize as usize}}", memory_size + 2);
+                        arguments_trait_type_buffer = arguments_trait_type
+                            .replace(format!(",{memory_size}>").as_str(), ",0>")
+                            .replace(format!(",{far_memory_size}>").as_str(), ",0>");
                         &arguments_trait_type_buffer
                     } else {
                         &arguments_trait_type
@@ -1524,28 +1536,50 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     if x87_instruction_wait_prefix {
                         let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
                             .entry((𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.replace("𝑭𝒏", "𝑭"), fn_name_adjusted.replace("fn", "f")))
+                            .or_insert_with(|| BTreeMap::new());
+                        let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+                            .entry(arguments_trait_type.to_owned())
                             .or_insert_with(|| Vec::new());
-                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.clone().replace("𝘅𝟴𝟲::𝑭𝒏", "𝘅𝟴𝟲::𝑭"));
+                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.replace("𝘅𝟴𝟲::𝑭𝒏", "𝘅𝟴𝟲::𝑭"));
                     }
                     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
                         .entry((𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), fn_name_adjusted.to_owned()))
-                        .or_insert_with(|| Vec::new());
+                        .or_insert_with(|| BTreeMap::new());
                     if legacy_push_segment {
-                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.clone().replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫"));
+                        let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+                            .entry(arguments_trait_type.replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫"))
+                            .or_insert_with(|| Vec::new());
+                        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.replace("𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬", "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫"));
                     }
+                    let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+                        .entry(arguments_trait_type.to_owned())
+                        .or_insert_with(|| Vec::new());
                     𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info);
                 }
             }
         }
+
+        assembler_instructions[assembler_kind as usize].extend(
+            leaf_assembler_instructions[assembler_kind as usize]
+                .iter()
+                .filter(|(_, assembler_instruction)| assembler_instruction.len() == 1)
+                .map(|(_, assembler_instruction)| assembler_instruction[0].clone()),
+        );
     }
 
     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.map(|traits_info| {
-        let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = Vec::new();
-        for ((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾, 𝖿𝗇_𝗇𝖺𝗆𝖾), trait_info) in traits_info {
-             let trait_info = trait_info.join("+");
-             𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)}}}}impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇ for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}"));
-        }
-        𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
+        traits_info
+            .iter()
+            .map(|((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾, 𝖿𝗇_𝗇𝖺𝗆𝖾), trait_info)| {
+                let trait_info = trait_info
+                    .iter()
+                    .filter(|(_, trait_info)| trait_info.len() == 1)
+                    .map(|(_, trait_info)| trait_info[0].clone())
+                    .collect::<Vec<_>>()
+                    .join("+");
+                format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)}}}}impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇ for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}")
+            })
+            .collect::<Vec<_>>()
     });
 
     return 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
