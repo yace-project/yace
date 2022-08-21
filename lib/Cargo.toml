@@ -11,4 +11,5 @@ edition = "2021"
 yace-codegen = { version = "=0.0.1", path = "../codegen" }
 
 [features]
+slow-tests = ["std"]
 std = []
