@@ -855,7 +855,9 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     }
 
                     let 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 = argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str();
-                    if 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 == "implicit" && !𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("string_instruction_source_address")
+                    if 𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽 == "implicit"
+                        && !𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("string_instruction_source_address")
+                        && !𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("xlat_address")
                     {
                         parameters_list.push(format!("_parameter{index}"));
                     } else {
@@ -984,12 +986,16 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
                 let (instruction_emit, instruction_trait_for_emit) = match arguments_sql_operands[..] {
                     [] | ["implicit"] | ["implicit", "implicit"] => {
-                        if !arguments_sql_operands.is_empty() && arguments_sql_types[0].starts_with("string_instruction_source_address") {
+                        if !arguments_sql_operands.is_empty()
+                            && (arguments_sql_types[0].starts_with("string_instruction_source_address")
+                                || arguments_sql_types[0].starts_with("xlat_address")) {
                             (
                                 format!("if let Some(𝗌𝖾𝗀𝗆𝖾𝗇𝗍)=parameter0.𝗌𝖾𝗀𝗆𝖾𝗇𝗍{{let 𝗌𝖾𝗀𝗆𝖾𝗇𝗍: u8 = 𝗌𝖾𝗀𝗆𝖾𝗇𝗍.into();<Self as 𝒆𝒎𝒊𝒕_𝒔𝒆𝒈𝒎𝒆𝒏𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>>::emit_segment_prefixes_and_opcodes(self,𝗌𝖾𝗀𝗆𝖾𝗇𝗍,[])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>>::emit_prefixes_and_opcodes(self,[])}}"),
                                 format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>+𝒆𝒎𝒊𝒕_𝒔𝒆𝒈𝒎𝒆𝒏𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>"),
                             )
-                        } else if arguments_sql_operands.len() > 1 && arguments_sql_types[1].starts_with("string_instruction_source_address") {
+                        } else if arguments_sql_operands.len() > 1
+                            && (arguments_sql_types[1].starts_with("string_instruction_source_address")
+                                || arguments_sql_types[1].starts_with("xlat_address")) {
                             (
                                 format!("if let Some(𝗌𝖾𝗀𝗆𝖾𝗇𝗍)=parameter1.𝗌𝖾𝗀𝗆𝖾𝗇𝗍{{let 𝗌𝖾𝗀𝗆𝖾𝗇𝗍: u8 = 𝗌𝖾𝗀𝗆𝖾𝗇𝗍.into();<Self as 𝒆𝒎𝒊𝒕_𝒔𝒆𝒈𝒎𝒆𝒏𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>>::emit_segment_prefixes_and_opcodes(self,𝗌𝖾𝗀𝗆𝖾𝗇𝗍,[])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>>::emit_prefixes_and_opcodes(self,[])}}"),
                                 format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>+𝒆𝒎𝒊𝒕_𝒔𝒆𝒈𝒎𝒆𝒏𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},0>"),
