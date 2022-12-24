@@ -12,32 +12,5 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#[path = "emitter.rs"]
-pub mod 𝗲𝗺𝗶𝘁𝘁𝗲𝗿;
-
-pub use 𝗲𝗺𝗶𝘁𝘁𝗲𝗿::𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
-pub use 𝗲𝗺𝗶𝘁𝘁𝗲𝗿::𝒃𝒚𝒕𝒆_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
-
-#[macro_use]
-#[path = "enums.rs"]
-pub mod 𝗲𝗻𝘂𝗺𝘀;
-
-pub use 𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
-pub use 𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫;
-
-#[cfg(test)]
-pub(crate) use 𝗲𝗻𝘂𝗺𝘀::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕;
-
-#[macro_use]
-#[path = "risc-v/mod.rs"]
-pub mod 𝗿𝗶𝘀𝗰_𝘃;
-
-#[macro_use]
-#[path = "x86/mod.rs"]
-pub mod 𝘅𝟴𝟲;
-
-#[path = "ia32.rs"]
-pub mod 𝗶𝗮𝟯𝟮;
-
-#[path = "x86-64.rs"]
-pub mod 𝘅𝟴𝟲_𝟲𝟰;
+#[path = "basic_assembler.rs"]
+pub(crate) mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
