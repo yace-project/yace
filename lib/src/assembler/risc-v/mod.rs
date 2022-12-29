@@ -15,6 +15,10 @@
 #[path = "basic_assembler.rs"]
 pub(crate) mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
 
+#[macro_use]
+#[path = "macros.rs"]
+mod 𝗺𝗮𝗰𝗿𝗼𝘀;
+
 #[path = "operands.rs"]
 pub(crate) mod 𝗼𝗽𝗲𝗿𝗮𝗻𝗱𝘀;
 

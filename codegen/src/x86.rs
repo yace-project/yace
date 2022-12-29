@@ -12,9 +12,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#![allow(non_camel_case_types)]
-#![allow(non_upper_case_globals)]
-
 extern crate proc_macro;
 
 use {
@@ -32,13 +29,13 @@ pub(crate) struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛�
     𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾: Option<core::num::NonZeroI8>,
     ₓ𝗂𝗓: Option<i8>,
     𝖺𝗏𝗑𝟧𝟣𝟤: Option<bool>,
-    𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌: &'ᵉˣᵗʳᵃ 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
+    𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌: &'ᵉˣᵗʳᵃ super::𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
 }
 
 impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬<'ᵉˣᵗʳᵃ> {
     pub(crate) fn new(
         input: &mut impl Iterator<Item = TokenTree>,
-        𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌: &'ᵉˣᵗʳᵃ 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
+        𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌: &'ᵉˣᵗʳᵃ super::𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
     ) -> Result<Self, &'static str> {
         let mut result: Self = 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
             𝖺𝖽𝖽𝗋_𝗌𝗂𝗓𝖾: None,
@@ -118,111 +115,6 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
             }
         }
         Ok(result)
-    }
-}
-
-#[derive(Clone, Default, Debug)]
-pub(crate) struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
-    𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾: Option<TokenTree>,
-    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: Option<TokenTree>,
-    𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑: Option<String>,
-    𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: Option<TokenStream>,
-    𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: Option<TokenStream>,
-}
-
-impl 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
-    // Note: it's not an error to have unparseable data after initial, mandatory, group.
-    // We just don't get extra info in that case.
-    pub(crate) fn new(input: &mut impl Iterator<Item = TokenTree>) -> Result<Self, &'static str> {
-        let (restrictions_stream, mut next_item) = match input.next() {
-            Some(TokenTree::Ident(pub_ident)) if pub_ident.to_string() == "pub" => match input.next() {
-                Some(TokenTree::Ident(trait_ident)) if trait_ident.to_string() == "trait" => (None, input.next()),
-
-                _ => return Ok(Default::default()),
-            },
-            Some(TokenTree::Ident(impl_ident)) if impl_ident.to_string() == "impl" => match input.next() {
-                Some(TokenTree::Group(restrictions_group)) if matches!(restrictions_group.delimiter(), Delimiter::Bracket) => {
-                    (Some(restrictions_group.stream()), input.next())
-                }
-                next_item => (None, next_item),
-            },
-            _ => return Ok(Default::default()),
-        };
-        let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = match next_item {
-            Some(TokenTree::Ident(_)) => next_item,
-            Some(TokenTree::Group(trait_group)) if matches!(trait_group.delimiter(), Delimiter::None) => {
-                let mut trait_iter = trait_group.stream().into_iter();
-                let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = trait_iter.next();
-                let Some(TokenTree::Ident(_)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 else {
-                    return Ok(Default::default());
-                };
-                if trait_iter.next().is_some() {
-                    return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
-                }
-                𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾
-            }
-            _ => return Ok(Default::default()),
-        };
-        let 𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑 = {
-            let Some(TokenTree::Ident(ref 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾)) = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 else {
-                return Ok(Default::default());
-            };
-            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_string();
-            let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_bytes();
-            let mut index = 0;
-            while index < 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.len() {
-                // SAFETY: guaranteed by while check.
-                if unsafe { *𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.get_unchecked(index) } == b'_' {
-                    break;
-                }
-                index += 1;
-            }
-            // SAFETY: guaranteed by UTF-8.
-            Some(unsafe {
-                String::from_utf8_unchecked(𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾[index..𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.len()].to_vec())
-            })
-        };
-        match input.next() {
-            Some(TokenTree::Ident(for_ident)) if for_ident.to_string() == "for" => (),
-            _ => {
-                return Ok(𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
-                    𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾: None,
-                    𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾,
-                    𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑,
-                    𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: restrictions_stream,
-                    𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: None,
-                })
-            }
-        }
-        next_item = input.next();
-        let 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 = match next_item {
-            Some(TokenTree::Ident(_)) => next_item,
-            Some(TokenTree::Group(struct_group)) if matches!(struct_group.delimiter(), Delimiter::None) => {
-                let mut struct_iter = struct_group.stream().into_iter();
-                let 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 = struct_iter.next();
-                let Some(TokenTree::Ident(_)) = 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾 else {
-                    return Ok(Default::default());
-                };
-                if struct_iter.next().is_some() {
-                    return Err("compile_error!(\"𝖋𝖎𝖑𝖙𝖊𝖗_𝖝𝟴𝟲_𝖒𝖆𝖗𝖐𝖊𝖗𝖘! — couldn't parse optional data.\");");
-                }
-                𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
-            }
-            _ => return Ok(Default::default()),
-        };
-        let params_stream = match input.next() {
-            Some(TokenTree::Group(params_group)) if matches!(params_group.delimiter(), Delimiter::Bracket) => {
-                Some(params_group.stream())
-            }
-            _ => None,
-        };
-        Ok(𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐞𝐱𝐭𝐫𝐚_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬 {
-            𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾,
-            𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾,
-            𝗍𝗋𝖺𝗂𝗍_𝗌𝗎𝖿𝖿𝗂𝗑,
-            𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇: restrictions_stream,
-            𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼: params_stream,
-        })
     }
 }
 

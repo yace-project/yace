@@ -18,12 +18,16 @@ pub trait 𝒐𝒑𝒕𝒊𝒐𝒏_𝒇𝒓𝒐𝒎_𝒖𝒏𝒇𝒊𝒍𝒍𝒆
 // Address includes some values which are optional and can be unfilled. We use empty type to mark these.
 // Note: we can not use just an empty tuple because then we couldn't define From trait for it.
 // Note2: scale and displacement must be obtainable from 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞.  Integer types are obtainable automatically.
+#[derive(Clone, Copy, Default, Debug)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞 {}
 
 // All assembler support two addresses: 16ᵇⁱᵗ and 32ᵇⁱᵗ in legacy mode or 32ᵇⁱᵗ and 64ᵇⁱᵗ in ₓ86_64 mode.
 // We provide different address constants for these three modes — that way there are no ambiguity even if simple 𝔞𝔡𝔡𝔯𝔢𝔰𝔰 [0] is used.
+#[derive(Clone, Copy, Default, Debug)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞_16ᵇⁱᵗ {} // We don't really need that because of 𝒂𝒅𝒅𝒓𝒆𝒔𝒔_8086 vs 𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86 difference. Maybe remove?
+#[derive(Clone, Copy, Default, Debug)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞_32ᵇⁱᵗ {}
+#[derive(Clone, Copy, Default, Debug)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞_64ᵇⁱᵗ {}
 
 // Address type is just a combination of arguments and it's mostly used to simplify interface. There are few address types:
@@ -903,7 +907,7 @@ pub const 𝔤𝔞𝔱𝔥𝔢𝔯_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_64ᵇⁱᵗ: �
     𝖽𝗂𝗌𝗉: 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞 {},
 };
 
-// Fluent interface requires the ability to find out type from arguments: Rust doesn't try to do complex pruning when you have
+// Fluent interface requires the ability to find out type from arguments: Rust doesn't try to do complex reasoning when you have
 // something like 𝔞𝔡𝔡𝔯𝔢𝔰𝔰.with_base(…).with_index(…).with_disp(…).
 //
 // Collect all arguments into 𝒇𝒍𝒖𝒆𝒏𝒕_𝒂𝒅𝒅𝒓𝒆𝒔𝒔_{8086,ₓ86} instead and then provide conversions into proper addess.

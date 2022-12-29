@@ -32,6 +32,15 @@ pub(crate) use 𝗲𝗻𝘂𝗺𝘀::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_�
 #[path = "risc-v/mod.rs"]
 pub mod 𝗿𝗶𝘀𝗰_𝘃;
 
+#[path = "rv32e.rs"]
+pub mod 𝗿𝘃𝟯𝟮𝗲;
+
+#[path = "rv32i.rs"]
+pub mod 𝗿𝘃𝟯𝟮𝗶;
+
+#[path = "rv64i.rs"]
+pub mod 𝗿𝘃𝟲𝟰𝗶;
+
 #[macro_use]
 #[path = "x86/mod.rs"]
 pub mod 𝘅𝟴𝟲;
