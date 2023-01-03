@@ -188,7 +188,7 @@ impl 𝑩_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 
 impl 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x000f80000)
+        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x0000f8000)
     }
     #[inline(always)]
     pub const unsafe fn new_unchecked(imm: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -488,7 +488,7 @@ impl 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     }
     #[inline(always)]
     pub const unsafe fn new_unchecked(imm: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x000007e0) << 20 | (imm & 0x0000001f) << 7 | (imm & 0x00000800) >> 4)
+        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x0000007ff) << 20 | (imm & 0x00000800) << 9 | (imm & 0x000ff000))
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -1226,7 +1226,7 @@ impl TryFrom<i8> for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     type Error = 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
     #[inline(always)]
     fn try_from(imm: i8) -> Result<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞, 𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫> {
-        if let 0x00 = imm & 0x7f {
+        if let 0x00 = imm {
             Ok(𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm as i32 & -0x00001000))
         } else {
             Err(𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))
