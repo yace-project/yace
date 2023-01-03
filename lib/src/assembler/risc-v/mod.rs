@@ -24,3 +24,7 @@ mod 𝗺𝗮𝗰𝗿𝗼𝘀;
 
 #[path = "operands.rs"]
 pub(crate) mod 𝗼𝗽𝗲𝗿𝗮𝗻𝗱𝘀;
+
+#[path = "tests.rs"]
+#[cfg(test)]
+mod 𝘁𝗲𝘀𝘁𝘀;
