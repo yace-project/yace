@@ -12,14 +12,5 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#![allow(uncommon_codepoints)]
-#![allow(non_camel_case_types)]
-// Prevent: identifier pair considered confusable between `𝑰𝒏𝒕𝒐` and `Into`. Unfortunately it's crate-level lint.
-#![allow(confusable_idents)]
-#![cfg_attr(not(feature = "std"), no_std)]
-
-#[path = "assembler/mod.rs"]
-pub mod 𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
-
-#[path = "disassembler/mod.rs"]
-pub mod 𝗱𝗶𝘀𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
+#[path = "receiver.rs"]
+pub mod 𝗿𝗲𝗰𝗲𝗶𝘃𝗲𝗿;
