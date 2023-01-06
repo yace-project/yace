@@ -126,9 +126,15 @@ impl<'ᵉˣᵗʳᵃ> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢�
 impl From<𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞> for 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
     fn from(size: 𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞) -> 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞 {
         match size {
-            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳32𝔢 => 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢,
-            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳32𝔦 => 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦,
-            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳64𝔦 => 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦,
+            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳32𝔢 => {
+                𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢
+            }
+            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳32𝔦 => {
+                𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦
+            }
+            𝐫𝐢𝐬𝐜_𝐯_𝐦𝐨𝐝𝐞::𝔯𝔳64𝔦 => {
+                𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦
+            }
         }
     }
 }
@@ -161,43 +167,45 @@ pub(crate) fn filter_riscv_markers_iterable(
         };
 
         match ident.to_string().as_ref() {
-            "𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕀𝕞𝕡𝕝𝕖𝕞𝕖𝕟𝕥𝕋𝕣𝕒𝕚𝕥𝕤" => if attributes.𝗋𝗏_𝖺𝖻𝗂.unwrap() == 𝐫𝐢𝐬𝐜_𝐯_𝐚𝐛𝐢::𝔢𝔞𝔟𝔦 {
-                let token_stream: TokenStream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
-                    [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(attributes.𝗋𝗏_𝗆𝗈𝖽𝖾.unwrap()) as usize]
-                    .𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌
-                    .parse()
-                    .unwrap();
-                for token in token_stream.into_iter() {
-                    match token {
-                        TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
-                            let token_stream: TokenStream = if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) =
-                                attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
-                            {
-                                let mut previous_token = None;
-                                for token in 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter() {
-                                    if let Some(previous_token) = previous_token.replace(token) {
-                                        emit_tokens(output, output_extra, [previous_token]);
+            "𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕀𝕞𝕡𝕝𝕖𝕞𝕖𝕟𝕥𝕋𝕣𝕒𝕚𝕥𝕤" => {
+                if attributes.𝗋𝗏_𝖺𝖻𝗂.unwrap() == 𝐫𝐢𝐬𝐜_𝐯_𝐚𝐛𝐢::𝔢𝔞𝔟𝔦 {
+                    let token_stream: TokenStream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
+                        [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(attributes.𝗋𝗏_𝗆𝗈𝖽𝖾.unwrap()) as usize]
+                        .𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌
+                        .parse()
+                        .unwrap();
+                    for token in token_stream.into_iter() {
+                        match token {
+                            TokenTree::Ident(ref ident) if ident.to_string() == "Æ" => {
+                                let token_stream: TokenStream = if let Some(ref 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇) =
+                                    attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇
+                                {
+                                    let mut previous_token = None;
+                                    for token in 𝗍𝗒𝗉𝖾_𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝗂𝗈𝗇.clone().into_iter() {
+                                        if let Some(previous_token) = previous_token.replace(token) {
+                                            emit_tokens(output, output_extra, [previous_token]);
+                                        }
                                     }
+                                    ","
+                                } else {
+                                    "<"
                                 }
-                                ","
-                            } else {
-                                "<"
+                                .parse()
+                                .unwrap();
+                                emit_tokens(output, output_extra, token_stream);
                             }
-                            .parse()
-                            .unwrap();
-                            emit_tokens(output, output_extra, token_stream);
+                            TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
+                                if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
+                                {
+                                    emit_tokens(output, output_extra, [𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()]);
+                                }
+                                if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
+                                {
+                                    emit_tokens(output, output_extra, 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter());
+                                }
+                            }
+                            _ => emit_tokens(output, output_extra, [token]),
                         }
-                        TokenTree::Ident(ref ident) if ident.to_string() == "æ" => {
-                            if let Some(ref 𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾
-                            {
-                                emit_tokens(output, output_extra, [𝗌𝗍𝗋𝗎𝖼𝗍_𝗇𝖺𝗆𝖾.clone()]);
-                            }
-                            if let Some(ref 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼) = attributes.𝖾𝗑𝗍𝗋𝖺_𝖺𝗍𝗍𝗋𝗂𝖻𝗎𝗍𝖾𝗌.𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼
-                            {
-                                emit_tokens(output, output_extra, 𝗍𝗒𝗉𝖾_𝗀𝖾𝗇𝖾𝗋𝗂𝖼.clone().into_iter());
-                            }
-                        }
-                        _ => emit_tokens(output, output_extra, [token]),
                     }
                 }
             }
@@ -476,8 +484,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info);
             }
         }
-        assembler_instructions[assembler_kind as usize].extend(leaf_assembler_instructions[assembler_kind as usize].iter().map(
-            |(_, assembler_instruction)| {
+        assembler_instructions[assembler_kind as usize].extend(leaf_assembler_instructions[assembler_kind as usize].values().map(
+            |assembler_instruction| {
                 assert_eq!(assembler_instruction.len(), 1);
                 assembler_instruction[0].clone()
             },
@@ -489,8 +497,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             .iter()
             .map(|((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾, 𝖿𝗇_𝗇𝖺𝗆𝖾), trait_info)| {
                 let trait_info = trait_info
-                    .iter()
-                    .map(|(_, trait_info)| {
+                    .values()
+                    .map(|trait_info| {
                         assert_eq!(trait_info.len(), 1);
                         trait_info[0].clone()
                     })
@@ -529,8 +537,8 @@ async fn get_database_connection() -> sqlx::SqliteConnection {
     let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
     // Note: during regular build root_path points to the yace workspace root, but in doctests
     // we get nested crate root.  Try to access both paths.
-    let database_url = format!("sqlite:{}/riscv-instructions.db?immutable=1", root_path);
-    let database_url_fallback = format!("sqlite:{}/../riscv-instructions.db?immutable=1", root_path);
+    let database_url = format!("sqlite:{root_path}/riscv-instructions.db?immutable=1");
+    let database_url_fallback = format!("sqlite:{root_path}/../riscv-instructions.db?immutable=1");
     let Ok(connection) = sqlx::SqliteConnection::connect(database_url.as_str()).await else {
         return sqlx::SqliteConnection::connect(database_url_fallback.as_str())
             .await

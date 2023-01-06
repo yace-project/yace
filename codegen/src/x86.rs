@@ -1300,9 +1300,9 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
         assembler_instructions[assembler_kind as usize].extend(
             leaf_assembler_instructions[assembler_kind as usize]
-                .iter()
-                .filter(|(_, assembler_instruction)| assembler_instruction.len() == 1)
-                .map(|(_, assembler_instruction)| assembler_instruction[0].clone()),
+                .values()
+                .filter(|assembler_instruction| assembler_instruction.len() == 1)
+                .map(|assembler_instruction| assembler_instruction[0].clone()),
         );
     }
 
@@ -1311,9 +1311,9 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             .iter()
             .map(|((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾, 𝖿𝗇_𝗇𝖺𝗆𝖾), trait_info)| {
                 let trait_info = trait_info
-                    .iter()
-                    .filter(|(_, trait_info)| trait_info.len() == 1)
-                    .map(|(_, trait_info)| trait_info[0].clone())
+                    .values()
+                    .filter(|trait_info| trait_info.len() == 1)
+                    .map(|trait_info| trait_info[0].clone())
                     .collect::<Vec<_>>()
                     .join("+");
                 format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as 𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{𝘅𝟴𝟲::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)}}}}impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇ for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}")
@@ -1359,8 +1359,8 @@ async fn get_database_connection() -> sqlx::SqliteConnection {
     let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
     // Note: during regular build root_path points to the yace workspace root, but in doctests
     // we get nested crate root.  Try to access both paths.
-    let database_url = format!("sqlite:{}/x86-instructions.db?immutable=1", root_path);
-    let database_url_fallback = format!("sqlite:{}/../x86-instructions.db?immutable=1", root_path);
+    let database_url = format!("sqlite:{root_path}/x86-instructions.db?immutable=1");
+    let database_url_fallback = format!("sqlite:{root_path}/../x86-instructions.db?immutable=1");
     let Ok(connection) = sqlx::SqliteConnection::connect(database_url.as_str()).await else {
         return sqlx::SqliteConnection::connect(database_url_fallback.as_str())
             .await
