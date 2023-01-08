@@ -11,10 +11,13 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #![allow(uncommon_codepoints)]
 #![allow(non_camel_case_types)]
-// Prevent: identifier pair considered confusable between `𝑰𝒏𝒕𝒐` and `Into`. Unfortunately it's crate-level lint.
+// Prevent unavoidable consutions:
+//     Identifier pair considered confusable between `𝑰𝒏𝒕𝒐` and `Into`. 𝑰𝒏𝒕𝒐 is 8086 instruction while Into is Rust trait.
+//     Identifier pair considered confusable between `Add` and `𝑨𝒅𝒅`. 𝑨𝒅𝒅 is 8086/RISC-V instruction while Add is Rust trait.
+//     Identifier pair considered confusable between `𝔞1` and `𝔞𝔩`. 𝔞1 is RISC-V register while 𝔞𝔩 is 8086 one.
+// We have lots of such “nonconfuseable confusions”, but unfortunately it's crate-level lint.
 #![allow(confusable_idents)]
 #![cfg_attr(not(feature = "std"), no_std)]
 

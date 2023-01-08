@@ -43,12 +43,10 @@ pub trait 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓 {
     fn get_i64(&mut self) -> Result<i64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
         self.get_u64().map(|value| value as i64)
     }
-    #[cfg(has_i128)]
     #[inline(always)]
     fn get_u128(&mut self) -> Result<u128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
         Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)
     }
-    #[cfg(has_i128)]
     #[inline(always)]
     fn get_i128(&mut self) -> Result<i128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
         self.get_u128().map(|value| value as i128)
