@@ -31,6 +31,10 @@ pub use 𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬
 #[cfg(test)]
 pub(crate) use 𝗲𝗻𝘂𝗺𝘀::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕;
 
+#[cfg(feature = "std")]
+#[path = "mc/mod.rs"]
+pub mod 𝗺𝗰;
+
 #[macro_use]
 #[path = "risc-v/mod.rs"]
 pub mod 𝗿𝗶𝘀𝗰_𝘃;
