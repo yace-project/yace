@@ -430,12 +430,14 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     [] => format!("self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x})"),
                     ["fencep", "fences"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<24|parameter1<<20)"),
                     ["p:imm(rs1)"] => format!("let base:u32=parameter0.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|base<<15|parameter0.𝖽𝗂𝗌𝗉.0 as u32)"),
+                    ["rd", "0(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15)"),
                     ["rd", "csr", "rs1"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2<<15)"),
                     ["rd", "csr", "c:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2.0 as u32)"),
                     ["rd", "imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
                     ["rd", "j:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.0 as u32)"),
                     ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2.0 as u32)"),
                     ["rd", "rs1", "rs2"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20)"),
+                    ["rd", "rs2", "0(rs1)"] =>  format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let base:u32=parameter2.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|base<<15)"),
                     ["rd", "u:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.0 as u32)"),
                     ["rs1", "rs2", "b:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<15|parameter1<<20|parameter2.0 as u32)"),
                     ["rs2", "s:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<20|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
@@ -743,6 +745,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
     hashmap! {
         "<:imm" => "Self::𝘀𝗵𝗶𝗳𝘁_𝗶𝗺𝗺𝗲𝗱𝗶𝗮𝘁𝗲",
         ">:imm" => "Self::𝐰𝐨𝐫𝐝_𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞>",
         "b:imm" => "Self::𝐛𝐫𝐚𝐧𝐜𝐡_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "Self::𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "Self::𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫",
@@ -768,7 +771,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
     hashmap! {
         ">:imm" => "𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 0>",
+        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞>",
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟑𝟐",
@@ -787,7 +790,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'sta
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
     hashmap! {
         ">:imm" => "𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 0>",
+        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞>",
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟑𝟐",
@@ -807,7 +810,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳64: Lazy<HashMap<&'static 
     hashmap! {
         "<:imm" => "𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         ">:imm" => "𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 0>",
+        "0(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞>",
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟔𝟒",
