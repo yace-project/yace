@@ -276,11 +276,11 @@ pub trait 𝒛𝒆𝒓𝒐_𝒐𝒇𝒇𝒔𝒆𝒕_𝒂𝒅𝒅𝒓𝒆𝒔𝒔
 // Address includes some values which are optional and can be unfilled. We use empty type to mark these.
 // Note: we can not use just an empty tuple because then we couldn't define From trait for it.
 // Note2: register and displacement must be obtainable from 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞.  Integer types are obtainable automatically.
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞 {}
 
-#[derive(Clone, Copy, Default, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct 𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮: Default, 𝓭𝓲𝓼𝓹_𝓽𝔂𝓹𝓮: Default> {
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct 𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮, 𝓭𝓲𝓼𝓹_𝓽𝔂𝓹𝓮> {
     pub 𝖻𝖺𝗌𝖾: 𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮,
     pub 𝖽𝗂𝗌𝗉: 𝓭𝓲𝓼𝓹_𝓽𝔂𝓹𝓮,
 }

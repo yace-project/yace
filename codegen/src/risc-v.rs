@@ -167,6 +167,14 @@ pub(crate) fn filter_riscv_markers_iterable(
         };
 
         match ident.to_string().as_ref() {
+            "𝔻𝕚𝕤𝕒𝕤𝕤𝕖𝕞𝕓𝕝𝕖𝕣𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤" => {
+                let token_stream: TokenStream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
+                    [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(attributes.𝗋𝗏_𝗆𝗈𝖽𝖾.unwrap()) as usize]
+                    .𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌
+                    .parse()
+                    .unwrap();
+                emit_tokens(output, output_extra, token_stream);
+            }
             "𝔽𝕠𝕣𝕨𝕒𝕣𝕕𝕀𝕞𝕡𝕝𝕖𝕞𝕖𝕟𝕥𝕋𝕣𝕒𝕚𝕥𝕤" => {
                 if attributes.𝗋𝗏_𝖺𝖻𝗂.unwrap() == 𝐫𝐢𝐬𝐜_𝐯_𝐚𝐛𝐢::𝔢𝔞𝔟𝔦 {
                     let token_stream: TokenStream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
@@ -343,8 +351,12 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
     let mut riscv_assembler_instructions = Vec::new();
     let mut assembler_instructions = [Vec::new(), Vec::new(), Vec::new()];
+    let mut disassembler_instructions = [Vec::new(), Vec::new(), Vec::new()];
+    let mut instructions_enum_declararion = [String::new(), String::new(), String::new()];
     let mut leaf_assembler_instructions = [BTreeMap::new(), BTreeMap::new(), BTreeMap::new()];
+    let mut leaf_disassembler_instructions = [BTreeMap::new(), BTreeMap::new(), BTreeMap::new()];
     let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = [BTreeMap::new(), BTreeMap::new(), BTreeMap::new()];
+    let mut 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌 = [BTreeMap::new(), BTreeMap::new(), BTreeMap::new()];
     let mut 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌 = [Vec::new(), Vec::new(), Vec::new()];
 
     let mut connection = get_database_connection().await;
@@ -376,6 +388,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
                 let 𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
                 let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
+                let 𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾 = instruction.𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾.as_str();
 
                 if instruction_trait.insert(𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
                     let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
@@ -390,14 +403,14 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     let mut parameters_type_list = Vec::new();
                     let mut parameters_list = Vec::new();
                     let mut parameters_convert_into = Vec::new();
-                    for (i, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
+                    for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
                         let argument_trait = argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍;
-                        parameter_types_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮:{argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,"));
-                        argument_types.push(format!("<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭"));
-                        parameters_type_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮"));
-                        parameters_list.push(format!("parameter{i}"));
+                        parameter_types_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮:{argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,"));
+                        argument_types.push(format!("<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭"));
+                        parameters_type_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮"));
+                        parameters_list.push(format!("parameter{index}"));
                         parameters_convert_into.push(format!(
-                            "core::convert::Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{i}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter{i})"
+                            "core::convert::Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter{index})"
                         ));
                     }
                     let parameter_types_list = parameter_types_list.concat();
@@ -419,14 +432,20 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let mut arguments_type = Vec::new();
                 let mut arguments_trait_type = Vec::new();
                 let mut parameters_list = Vec::new();
+                let mut enums_vector_list = Vec::new();
                 for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
                     arguments_type.push(argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
                     arguments_trait_type.push(argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾);
                     parameters_list.push(format!("parameter{index}"));
+                    enums_vector_list.push(format!(
+                        "𝐨𝐩𝐞𝐫𝐚𝐧𝐝::<Self::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮>::{}(parameter{})",
+                        argument.𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍, index
+                    ));
                 }
                 let arguments_type = format!("({}{arguments_comma})", arguments_type.join(","));
                 let arguments_trait_type = format!("({}{arguments_comma})", arguments_trait_type.join(","));
                 let parameters_list = format!("({}{arguments_comma})", parameters_list.join(","));
+                let enums_vector_list = format!("[{}].as_slice()", enums_vector_list.join(","));
 
                 let 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾;
 
@@ -476,12 +495,26 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     .or_insert_with(BTreeMap::new);
                 if rv64_long_shift {
                     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌
-                        .entry(arguments_trait_type.replace("𝘀𝗵𝗶𝗳𝘁_𝗶𝗺𝗺𝗲𝗱𝗶𝗮𝘁𝗲", "𝐰𝐨𝐫𝐝_𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"))
+                        .entry(arguments_trait_type.replace("𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞", "𝐰𝐨𝐫𝐝_𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"))
                         .or_insert_with(Vec::new);
                     𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info.replace("𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞", "𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"));
                 }
                 let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.entry(arguments_trait_type.to_owned()).or_insert_with(Vec::new);
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.push(instruction_info);
+
+                let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌[assembler_kind as usize]
+                    .entry(𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned())
+                    .or_insert_with(Vec::new);
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌.push(𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾.to_owned());
+
+                let arguments_trait_type =
+                    arguments_trait_type.replace("Self::", "<<Self as 𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔_𝒄𝒐𝒏𝒔𝒖𝒎𝒆𝒓>::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮 as 𝑪𝑷𝑼>::");
+                let instruction_info =
+                    format!("#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,{parameters_list}:{arguments_trait_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.instruction(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾},{enums_vector_list})}}");
+                let disassembler_instructions = leaf_disassembler_instructions[assembler_kind as usize]
+                    .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), arguments_type.to_owned()))
+                    .or_insert_with(Vec::new);
+                disassembler_instructions.push(instruction_info);
             }
         }
         assembler_instructions[assembler_kind as usize].extend(leaf_assembler_instructions[assembler_kind as usize].values().map(
@@ -490,6 +523,27 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 assembler_instruction[0].clone()
             },
         ));
+        disassembler_instructions[assembler_kind as usize].extend(
+            leaf_disassembler_instructions[assembler_kind as usize]
+                .values()
+                .map(|assembler_instruction| {
+                    assert_eq!(assembler_instruction.len(), 1);
+                    assembler_instruction[0].clone()
+                }),
+        );
+        let mut names_literal = Vec::new();
+        let enum_variant_list = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌[assembler_kind as usize]
+            .iter()
+            .map(|(instruction_name, enum_instruction_names)| {
+                assert_eq!(enum_instruction_names.len(), 1);
+                let position = names_literal.len();
+                names_literal.extend_from_slice(format!("\\x{:02x}", instruction_name.len()).as_bytes());
+                names_literal.extend_from_slice(instruction_name.as_bytes());
+                format!("{}={}", enum_instruction_names[0], position)
+            })
+            .collect::<Vec<_>>();
+        instructions_enum_declararion[assembler_kind as usize] =
+            format!("#[derive(Clone,Copy,Debug,Eq,Ord,PartialEq,PartialOrd)]#[repr(i16)]pub enum 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{{}}}#[cfg(feature = \"std\")]#[allow(non_upper_case_globals)]impl std::fmt::Display for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{fn fmt(&self,formatter:&mut std::fmt::Formatter<'_>)->std::fmt::Result{{std::fmt::Write::write_str(formatter,unsafe{{core::str::from_utf8_unchecked(&𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize+1..*self as usize+1+((𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize])as usize)])}})}}}}const 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰:&str=\"{}\";", enum_variant_list.join(","), core::str::from_utf8(&names_literal).unwrap());
     }
 
     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.map(|traits_info| {
@@ -513,19 +567,25 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
         𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: riscv_assembler_instructions.concat(),
         𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈: [
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌: instructions_enum_declararion[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].clone(),
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
+                𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
             },
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌: instructions_enum_declararion[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].clone(),
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
+                𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
             },
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
+                𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌: instructions_enum_declararion[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].clone(),
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
+                𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
             },
         ],
     }
@@ -597,23 +657,23 @@ where
                 operands_count
             )
         };
-        for i in 0..operands_count {
-            operand_requests.push(format!(
-                "operand{i}.parameter_type AS type{i},trait{i}.name AS trait{i},operand{i}.operand_source AS operand{i},"
-            ));
-            let (prefix, suffix) = if i == 0 {
+        for index in 0..operands_count {
+            operand_requests.push(formatdoc! {"
+                operand{index}.parameter_type AS type{index},trait{index}.name AS trait{index},
+                operand{index}.operand_source AS operand{index},"});
+            let (prefix, suffix) = if index == 0 {
                 ("", "".to_owned())
             } else {
-                (" LEFT JOIN", format!("ON name0 = name{i}"))
+                (" LEFT JOIN", format!("ON name0 = name{index}"))
             };
             select_traits.push(formatdoc! {"
                 {prefix}(
-                    SELECT name{i}, trait{i}
+                    SELECT name{index}, trait{index}
                     FROM (
-                        SELECT instruction.name AS name{i}, traits_information.name AS trait{i}, priority
+                        SELECT instruction.name AS name{index}, traits_information.name AS trait{index}, priority
                         FROM instruction LEFT JOIN
                              operands ON operands = short_name {operand_count_check} LEFT JOIN
-                             operand ON operand{i} = operand.name LEFT JOIN
+                             operand ON operand{index} = operand.name LEFT JOIN
                              traits_information ON parameter_type = allowed_operand
                              LEFT JOIN traits_priority ON traits_information.name = traits_priority.name
                         WHERE instruction.assembler_kind IS NULL OR
@@ -622,15 +682,17 @@ where
                         HAVING priority = MIN(priority)
                         ORDER BY instruction.name, operands, priority
                     )
-                    GROUP BY name{i}
+                    GROUP BY name{index}
                     HAVING priority = MAX(priority)
-                    ORDER BY name{i}
+                    ORDER BY name{index}
                 ){suffix}"});
-            operand_information.push(format!(" LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name"));
+            operand_information.push(format!(
+                " LEFT JOIN operand AS operand{index} ON operand{index} = operand{index}.name"
+            ));
             trait_information.push(formatdoc! {"
-                ,traits_information AS trait{i} ON trait{i} = trait{i}.name
-                AND operand{i}.parameter_type = trait{i}.allowed_operand"});
-            type_list.push(format!(", type{i}"));
+                ,traits_information AS trait{index} ON trait{index} = trait{index}.name
+                AND operand{index}.parameter_type = trait{index}.allowed_operand"});
+            type_list.push(format!(", type{index}"));
         }
         let operand_requests = operand_requests.concat();
         let select_traits = select_traits.concat();
@@ -662,6 +724,8 @@ where
             let row = row?;
             let instruction_name: String = row.try_get("name")?;
             let instruction_trait_name = super::𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
+            let instruction_enum_variant_name =
+                super::𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
             let instruction_auto_trait_name =
                 super::𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾(instruction_name.as_str());
 
@@ -680,21 +744,24 @@ where
                 let argument_trait = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
                     .get(argument_trait.as_str())
                     .expect("Failed to convert sql type to rust type");
+                let argument_str = if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 && argument == ">:imm"
+                {
+                    "<:imm"
+                } else {
+                    argument.as_str()
+                };
+                let argument_enum_variant = 𝔰𝔮𝔩_𝔱𝔬_𝔢𝔫𝔲𝔪
+                    .get(argument_str)
+                    .expect("Failed to convert sql type to rust type");
                 let argument_trait_type = 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱
-                    .get(
-                        if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 && argument == ">:imm"
-                        {
-                            "<:imm"
-                        } else {
-                            argument.as_str()
-                        },
-                    )
+                    .get(argument_str)
                     .expect("Failed to convert sql type to rust type");
 
                 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.push(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
                     𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: argument,
                     𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: operand,
                     𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: argument_type,
+                    𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍: argument_enum_variant,
                     𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: argument_trait,
                     𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾: argument_trait_type,
                 });
@@ -703,6 +770,7 @@ where
                 𝖿𝗇_𝗇𝖺𝗆𝖾: instruction_name,
                 𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: instruction_auto_trait_name,
                 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: instruction_trait_name,
+                𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾: instruction_enum_variant_name,
                 𝗈𝗉𝖼𝗈𝖽𝖾: row.try_get("opcode")?,
                 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄: row.try_get("opcode_mask")?,
                 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌,
@@ -732,6 +800,7 @@ struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲�
     𝖿𝗇_𝗇𝖺𝗆𝖾: String,
     𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: String,
     𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾: String,
+    𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾: String,
     𝗈𝗉𝖼𝗈𝖽𝖾: u32,
     𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄: u32,
     𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌: Vec<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞>,
@@ -742,21 +811,43 @@ struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧
     𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: String,
     𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: String,
     𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: &'static str,
+    𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍: &'static str,
     𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍: &'static str,
     𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾: &'static str,
 }
 
 pub(crate) static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: Lazy<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞> = Lazy::new(get_instrution_info);
+static 𝔰𝔮𝔩_𝔱𝔬_𝔢𝔫𝔲𝔪: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    hashmap! {
+        "<:imm" => "𝔰𝔥𝔦𝔣𝔱_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        ">:imm" => "𝔴𝔬𝔯𝔡_𝔰𝔥𝔦𝔣𝔱_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "0(gpr)" => "𝔞𝔱𝔬𝔪𝔦𝔠_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "b:imm" => "𝔟𝔯𝔞𝔫𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "c:imm" => "𝔠𝔰𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "csr" => "𝔠𝔰𝔯_𝔯𝔢𝔤𝔦𝔰𝔱𝔢𝔯_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "fence" => "𝔣𝔢𝔫𝔠𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "fpr" => "𝔣𝔭_𝔯𝔢𝔤𝔦𝔰𝔱𝔢𝔯_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "gpr" => "𝔤𝔭_𝔯𝔢𝔤𝔦𝔰𝔱𝔢𝔯_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "imm" => "𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "imm(gpr)" => "𝔰𝔬𝔲𝔯𝔠𝔢_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "j:imm" => "𝔧𝔲𝔪𝔭_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "p:imm(gpr)" => "𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "rm" => "𝔯𝔬𝔲𝔫𝔡𝔦𝔫𝔤_𝔪𝔬𝔡𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "s:imm" => "𝔡𝔢𝔰𝔱𝔦𝔫𝔞𝔱𝔦𝔬𝔫_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "s:imm(gpr)" => "𝔡𝔢𝔰𝔱𝔦𝔫𝔞𝔱𝔦𝔬𝔫_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "u:imm" => "𝔲𝔭𝔭𝔢𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡"
+    }
+});
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
     hashmap! {
-        "<:imm" => "Self::𝘀𝗵𝗶𝗳𝘁_𝗶𝗺𝗺𝗲𝗱𝗶𝗮𝘁𝗲",
+        "<:imm" => "Self::𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         ">:imm" => "Self::𝐰𝐨𝐫𝐝_𝐬𝐡𝐢𝐟𝐭_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "b:imm" => "Self::𝐛𝐫𝐚𝐧𝐜𝐡_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "Self::𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "Self::𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫",
         "csr_assembler_operand" => "𝒄𝒔𝒓_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
         "destination_assembler_operand" => "𝒅𝒆𝒔𝒕𝒊𝒏𝒂𝒕𝒊𝒐𝒏_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
-        "fence" => "Self::𝐟𝐞𝐧𝐜𝐞_𝐨𝐩𝐞𝐫𝐚𝐧𝐝",
+        "fence" => "Self::𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "Self::𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "imm" => "Self::𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -780,7 +871,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'sta
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟑𝟐",
-        "fence" => "𝐟𝐞𝐧𝐜𝐞_𝐨𝐩𝐞𝐫𝐚𝐧𝐝",
+        "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞",
         "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -799,7 +890,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32: Lazy<HashMap<&'static 
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟑𝟐",
-        "fence" => "𝐟𝐞𝐧𝐜𝐞_𝐨𝐩𝐞𝐫𝐚𝐧𝐝",
+        "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -819,7 +910,7 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳64: Lazy<HashMap<&'static 
         "b:imm" => "𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "c:imm" => "𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "csr" => "𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟔𝟒",
-        "fence" => "𝐟𝐞𝐧𝐜𝐞_𝐨𝐩𝐞𝐫𝐚𝐧𝐝",
+        "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -839,7 +930,9 @@ pub(crate) struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟�
 }
 
 pub(crate) struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
-    𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: String,
-    𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: String,
+    pub(crate) 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌: String,
+    pub(crate) 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: String,
+    pub(crate) 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: String,
     pub(crate) 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: String,
+    pub(crate) 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: String,
 }

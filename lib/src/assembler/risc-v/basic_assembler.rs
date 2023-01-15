@@ -543,7 +543,7 @@
     []
     #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
     #[repr(i8/u8)]
-    pub enum 𝐟𝐞𝐧𝐜𝐞_𝐨𝐩𝐞𝐫𝐚𝐧𝐝 {
+    pub enum 𝐟𝐞𝐧𝐜𝐞 {
         𝔴 = 1,
         𝔯 = 2,
         𝔯𝔴 = 3,

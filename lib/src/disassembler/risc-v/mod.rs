@@ -12,18 +12,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#[path = "producer.rs"]
-pub mod 𝗽𝗿𝗼𝗱𝘂𝗰𝗲𝗿;
-
 #[macro_use]
-#[path = "risc-v/mod.rs"]
-pub mod 𝗿𝗶𝘀𝗰_𝘃;
+#[path = "macros.rs"]
+mod 𝗺𝗮𝗰𝗿𝗼𝘀;
 
-#[path = "rv32e.rs"]
-pub mod 𝗿𝘃𝟯𝟮𝗲;
-
-#[path = "rv32i.rs"]
-pub mod 𝗿𝘃𝟯𝟮𝗶;
-
-#[path = "rv64i.rs"]
-pub mod 𝗿𝘃𝟲𝟰𝗶;
+#[path = "operands.rs"]
+pub(crate) mod 𝗼𝗽𝗲𝗿𝗮𝗻𝗱𝘀;
