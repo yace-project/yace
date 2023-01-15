@@ -2554,6 +2554,18 @@
         𝔯15 = 15
     }
 
+    [{|value| value > 3}]
+    []
+    []
+    #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+    #[repr(i8/u8)]
+    pub enum 𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞 {
+        𝔵1 = 0,
+        𝔵2 = 1,
+        𝔵4 = 2,
+        𝔵8 = 3
+    }
+
     [{|value| value != 0x26}]
     []
     [   𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐨_𝐜𝐬 {|value| value != 0x26},
@@ -3039,15 +3051,6 @@
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[repr(i8)]
-pub enum 𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞 {
-    𝔵1 = 1,
-    𝔵2 = 2,
-    𝔵4 = 4,
-    𝔵8 = 8,
-}
-
 impl Default for 𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞 {
     #[inline(always)]
     fn default() -> Self {
@@ -3060,16 +3063,6 @@ impl From<super::𝗮𝗱𝗱𝗿𝗲𝘀𝘀::𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_
     fn from(_: super::𝗮𝗱𝗱𝗿𝗲𝘀𝘀::𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞) -> Self {
         Default::default()
     }
-}
-
-// Note: (value * 0 + 1) gives us 1 of the appropriate type.
-// Otherwise << would use 1 to determine type of the result and would end up with i32, not i8/u8 which we need.
-𝖉𝖊𝖋𝖎𝖓𝖊_𝖙𝖗𝖞𝖋𝖗𝖔𝖒_𝖋𝖔𝖗_𝖎𝖓𝖙! {
-    𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞
-    {|value| (value * 0 + 1) << value}
-    {|value| unsafe { #[allow(clippy::unnecessary_cast)]core::num::NonZeroU32::new_unchecked(value as u32) }.trailing_zeros()}
-    {|value| value > 3}
-    (i8, u8)
 }
 
 // In ₓ86_64 mode 𝔢𝔰 register doesn't exist and can not be specified for 𝒔𝒕𝒓𝒊𝒏𝒈_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏_𝒅𝒆𝒔𝒕𝒊𝒏𝒂𝒕𝒊𝒐𝒏_𝒂𝒅𝒅𝒓𝒆𝒔𝒔
@@ -3104,21 +3097,6 @@ impl TryFrom<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86
     #[inline(always)]
     fn try_from(_: 𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64) -> Result<Self, Self::Error> {
         Err(super::super::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐞𝐫𝐫𝐨𝐫(()))
-    }
-}
-
-#[cfg(test)]
-impl TryFrom<i8> for super::super::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕<𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞> {
-    type Error = super::super::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
-    #[allow(dead_code)]
-    fn try_from(value: i8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(super::super::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵1)),
-            1 => Ok(super::super::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵2)),
-            2 => Ok(super::super::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵4)),
-            3 => Ok(super::super::𝒘𝒓𝒂𝒑𝒑𝒆𝒓_𝒇𝒐𝒓_𝒕𝒆𝒔𝒕(𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞::𝔵8)),
-            _ => Err(super::super::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(())),
-        }
     }
 }
 
