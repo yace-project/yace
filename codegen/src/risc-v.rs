@@ -460,15 +460,19 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     ["rd", "0(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15)"),
                     ["rd", "csr", "rs1"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2<<15)"),
                     ["rd", "csr", "c:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2.0 as u32)"),
-                    ["rd", "imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
+                    ["rd", "i:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
                     ["rd", "j:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.0 as u32)"),
                     ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2.0 as u32)"),
+                    ["rd", "rs1", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<12)"),
                     ["rd", "rs1", "rs2"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20)"),
+                    ["rd", "rs1", "rs2", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();let parameter3:u32=parameter3.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<12)"),
+                    ["rd", "rs1", "rs2", "rs3", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();let parameter3:u32=parameter3.into();let parameter4:u32=parameter4.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<27|parameter4<<12)"),
+                    ["rd", "rs1"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15)"),
                     ["rd", "rs2", "0(rs1)"] =>  format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let base:u32=parameter2.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|base<<15)"),
                     ["rd", "u:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.0 as u32)"),
                     ["rs1", "rs2", "b:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<15|parameter1<<20|parameter2.0 as u32)"),
                     ["rs2", "s:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<20|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
-                    _ => panic!("Unsupported combination of instruction arguments"),
+                    _ => panic!("Unsupported combination of instruction arguments {arguments_sql_operands:?}"),
                 };
 
                 let instruction_info =
@@ -864,7 +868,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
         "shift_rv64_assembler_operand" => "𝒔𝒉𝒊𝒇𝒕_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
         "source_assembler_operand" => "𝒔𝒐𝒖𝒓𝒄𝒆_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
         "u:imm" => "Self::𝐮𝐩𝐩𝐞𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "zero_offset_base_assembler_operand" => "𝒛𝒆𝒓𝒐_𝒐𝒇𝒇𝒔𝒆𝒕_𝒂𝒅𝒅𝒓𝒆𝒔𝒔_𝒐𝒑𝒆𝒓𝒂𝒏𝒅"
+        "zero_offset_base_assembler_operand" => "𝒛𝒆𝒓𝒐_𝒐𝒇𝒇𝒔𝒆𝒕_𝒂𝒅𝒅𝒓𝒆𝒔𝒔_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
+        "rm" => "Self::𝐫𝐨𝐮𝐧𝐝𝐢𝐧𝐠_𝐦𝐨𝐝𝐞"
     }
 });
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
@@ -883,7 +888,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'sta
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "s:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
-        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"
+        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "rm" => "𝐫𝐨𝐮𝐧𝐝𝐢𝐧𝐠_𝐦𝐨𝐝𝐞"
     }
 });
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
@@ -902,7 +908,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32: Lazy<HashMap<&'static 
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "s:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
-        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"
+        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "rm" => "𝐫𝐨𝐮𝐧𝐝𝐢𝐧𝐠_𝐦𝐨𝐝𝐞"
     }
 });
 static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳64: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
@@ -922,7 +929,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳64: Lazy<HashMap<&'static 
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "s:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
-        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞"
+        "u:imm" => "𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "rm" => "𝐫𝐨𝐮𝐧𝐝𝐢𝐧𝐠_𝐦𝐨𝐝𝐞"
     }
 });
 
