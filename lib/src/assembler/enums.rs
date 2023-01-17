@@ -295,6 +295,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
             pub enum $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮:ident {
                 $($𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓷𝓪𝓶𝓮:ident = $𝓻𝓮𝓰𝓲𝓼𝓽𝓮𝓻_𝓮𝓷𝓬𝓸𝓭𝓲𝓷𝓰:expr),*
             }
+            Display: {$𝓼𝓮𝓵𝓯:ident => $𝓭𝓲𝓼𝓹𝓵𝓪𝔂_𝓫𝓸𝓭𝔂:expr}
           )*) => {
             $(
                 #[derive($($𝓭𝓮𝓻𝓲𝓿𝓮𝓼)*)]
@@ -330,6 +331,15 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖊𝖓𝖚𝖒𝖘 {
                              )*
                             _ => Err($crate::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))
                         }
+                    }
+                }
+
+                #[cfg(feature = "std")]
+                impl std::fmt::Display for $𝓮𝓷𝓾𝓶_𝓷𝓪𝓶𝓮 {
+                    #[inline(always)]
+                    fn fmt(&$𝓼𝓮𝓵𝓯, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result{
+                        // SAFETY: cutting from ascii-string with indexes in range.
+                        std::fmt::Write::write_str(formatter, unsafe{ core::str::from_utf8_unchecked($𝓭𝓲𝓼𝓹𝓵𝓪𝔂_𝓫𝓸𝓭𝔂) })
                     }
                 }
 
