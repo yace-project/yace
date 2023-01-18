@@ -537,15 +537,17 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     assembler_instruction[0].clone()
                 }),
         );
+        let mut position = 0;
         let mut names_literal = Vec::new();
         let enum_variant_list = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌[assembler_kind as usize]
             .iter()
             .map(|(instruction_name, enum_instruction_names)| {
                 assert_eq!(enum_instruction_names.len(), 1);
-                let position = names_literal.len();
                 names_literal.extend_from_slice(format!("\\x{:02x}", instruction_name.len()).as_bytes());
                 names_literal.extend_from_slice(instruction_name.as_bytes());
-                format!("{}={}", enum_instruction_names[0], position)
+                let defintion = format!("{}={}", enum_instruction_names[0], position);
+                position += instruction_name.len() + 1;
+                defintion
             })
             .collect::<Vec<_>>();
         instructions_enum_declararion[assembler_kind as usize] =
@@ -825,8 +827,8 @@ struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧
 pub(crate) static 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬: Lazy<𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞> = Lazy::new(get_instrution_info);
 static 𝔰𝔮𝔩_𝔱𝔬_𝔢𝔫𝔲𝔪: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
     hashmap! {
-        "<:imm" => "𝔰𝔥𝔦𝔣𝔱_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
-        ">:imm" => "𝔴𝔬𝔯𝔡_𝔰𝔥𝔦𝔣𝔱_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "<:imm" => "𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        ">:imm" => "𝔴𝔬𝔯𝔡_𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "0(gpr)" => "𝔞𝔱𝔬𝔪𝔦𝔠_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "b:imm" => "𝔟𝔯𝔞𝔫𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "c:imm" => "𝔠𝔰𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",

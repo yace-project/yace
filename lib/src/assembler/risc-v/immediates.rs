@@ -39,6 +39,13 @@ pub struct 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚�
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
 pub struct 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -185,6 +192,13 @@ impl TryFrom<u64> for 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 }
 impl 𝑩_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -319,6 +333,13 @@ impl TryFrom<u64> for 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     }
 }
 impl 𝒄𝒔𝒓_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
+
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
 
 impl 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
@@ -481,6 +502,13 @@ impl TryFrom<u64> for 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 impl 𝑰_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -626,6 +654,13 @@ impl TryFrom<u64> for 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 }
 impl 𝑱_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -760,6 +795,13 @@ impl TryFrom<u64> for 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     }
 }
 impl 𝑷_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
+
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
 
 impl 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
@@ -921,6 +963,13 @@ impl TryFrom<u64> for 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 }
 impl 𝑺_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -1056,6 +1105,13 @@ impl TryFrom<u64> for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝
 }
 impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟑𝟐_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
+
 impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
     pub const fn new_from_instruction(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -1190,6 +1246,13 @@ impl TryFrom<u64> for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝
     }
 }
 impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟔𝟒_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
+
+#[cfg(feature = "std")]
+impl std::fmt::Display for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Into::<i32>::into(*self).fmt(f)
+    }
+}
 
 impl 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
