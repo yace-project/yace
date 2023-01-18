@@ -539,19 +539,20 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
         );
         let mut position = 0;
         let mut names_literal = Vec::new();
-        let enum_variant_list = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌[assembler_kind as usize]
+        let (enum_variant_list, enum_match_list): (Vec<_>, Vec<_>) = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝖾𝗇𝗎𝗆𝗌[assembler_kind as usize]
             .iter()
             .map(|(instruction_name, enum_instruction_names)| {
                 assert_eq!(enum_instruction_names.len(), 1);
                 names_literal.extend_from_slice(format!("\\x{:02x}", instruction_name.len()).as_bytes());
                 names_literal.extend_from_slice(instruction_name.as_bytes());
                 let defintion = format!("{}={}", enum_instruction_names[0], position);
+                let match_arm = format!("{} => Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{}),", position, enum_instruction_names[0]);
                 position += instruction_name.len() + 1;
-                defintion
+                (defintion, match_arm)
             })
-            .collect::<Vec<_>>();
+            .unzip();
         instructions_enum_declararion[assembler_kind as usize] =
-            format!("#[derive(Clone,Copy,Debug,Eq,Ord,PartialEq,PartialOrd)]#[repr(i16)]pub enum 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{{}}}#[cfg(feature = \"std\")]#[allow(non_upper_case_globals)]impl std::fmt::Display for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{#[inline(always)]fn fmt(&self,formatter:&mut std::fmt::Formatter<'_>)->std::fmt::Result{{std::fmt::Write::write_str(formatter,unsafe{{core::str::from_utf8_unchecked(&𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize+1..*self as usize+1+((𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize])as usize)])}})}}}}const 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰:&str=\"{}\";", enum_variant_list.join(","), core::str::from_utf8(&names_literal).unwrap());
+            format!("#[derive(Clone,Copy,Debug,Eq,Ord,PartialEq,PartialOrd)]#[repr(i16)]pub enum 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{{}}}#[cfg(feature = \"std\")]#[allow(non_upper_case_globals)]impl std::fmt::Display for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{#[inline(always)]fn fmt(&self,formatter:&mut std::fmt::Formatter<'_>)->std::fmt::Result{{std::fmt::Write::write_str(formatter,unsafe{{core::str::from_utf8_unchecked(&𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize+1..*self as usize+1+((𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize])as usize)])}})}}}}const 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰:&str=\"{}\";impl TryFrom<i16> for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{type Error=super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;#[inline(always)]fn try_from(value: i16) -> Result<Self, Self::Error>{{match value {{{}_ => Err(super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}}}}}}", enum_variant_list.join(","), core::str::from_utf8(&names_literal).unwrap(), enum_match_list.concat());
     }
 
     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.map(|traits_info| {
