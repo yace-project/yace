@@ -88,6 +88,7 @@ fn test_enums_display() {
         𝔦 => "i", 𝔦𝔴 => "iw", 𝔦𝔯 => "ir", 𝔦𝔯𝔴 => "irw", 𝔦𝔬 => "io", 𝔦𝔬𝔴 => "iow", 𝔦𝔬𝔯 => "ior", 𝔦𝔬𝔯𝔴 => "iorw");
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn test_csr_register_display() {
     verify_display_for_type::<super::𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝐜𝐬𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐫𝐯𝟑𝟐>();
