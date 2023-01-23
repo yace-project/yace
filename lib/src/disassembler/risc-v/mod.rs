@@ -18,3 +18,6 @@ mod 𝗺𝗮𝗰𝗿𝗼𝘀;
 
 #[path = "operands.rs"]
 pub(crate) mod 𝗼𝗽𝗲𝗿𝗮𝗻𝗱𝘀;
+
+#[path = "tables.rs"]
+pub(crate) mod 𝘁𝗮𝗯𝗹𝗲𝘀;

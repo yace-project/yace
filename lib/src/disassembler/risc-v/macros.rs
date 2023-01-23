@@ -47,7 +47,56 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖗𝖎𝖘𝖈𝖛_𝖉𝖎𝖘𝖆𝖘�
                     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
                     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
 
-                    fn instruction(&mut self, instruction: 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝, operands: &[𝐨𝐩𝐞𝐫𝐚𝐧𝐝<Self::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮>]) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                    fn instruction(&mut self, instruction: 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝, operands: &[𝐨𝐩𝐞𝐫𝐚𝐧𝐝<Self::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮>])
+                        -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                    fn unimplemented_16bit_instruction(&mut self, instruction: u16) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                    fn unimplemented_32bit_instruction(&mut self, instruction: u32) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+
+                    fn decode<𝓫𝔂𝓽𝓮_𝓹𝓻𝓸𝓭𝓾𝓬𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓<𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>>(&mut self, producer: &mut 𝓫𝔂𝓽𝓮_𝓹𝓻𝓸𝓭𝓾𝓬𝓮𝓻_𝓽𝔂𝓹𝓮)
+                        -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓹𝓻𝓸𝓭𝓾𝓬𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                    {
+                        // Long instructions use bits 12-14 and 2-6 for opcode but short instruction use at least bits 15-13 and
+                        // 1-0 for it.
+                        //
+                        // Different instruction have differently sized opcodes, longest ones are 𝔠.𝔞𝔫𝔡, 𝔠.𝔬𝔯, 𝔠.𝔰𝔲𝔟, 𝔠.𝔵𝔬𝔯 where
+                        // bits 15-10, 6-5, and 1-0 are used as opcode.
+                        //
+                        // Since bits 2-6 are also used as immediates in short instruction we split low 16 bits in the following
+                        // parts: bits 15-10 and 1-0 are compressed_instruction_opcode while bits 6-2 are full_instruction_opcode
+                        // and 6-9 becomes rd_field (although it includes only 3 bits, but you get the remaining two during
+                        // processing of the compressed_instruction_opcode).
+
+                        let parcel0: u16 = producer.get_u16()?;
+                        let compressed_instruction_opcode = (((parcel0 >> 8) & 0xfc) | (parcel0 & 0x3)) as usize;
+                        let full_instruction_opcode = ((parcel0 >> 2) & 0x1f) as usize;
+                        let rd_bits = ((parcel0 >> 7) & 0x07) as usize;
+
+                        let compressed_instruction_step =
+                            super::𝗿𝗶𝘀𝗰_𝘃::𝘁𝗮𝗯𝗹𝗲𝘀::Ξ𝔯𝔳32[𝔠𝔬𝔪𝔭𝔯𝔢𝔰𝔢𝔡_𝔰𝔱𝔢𝔭_𝔡𝔦𝔰𝔭𝔞𝔱𝔠𝔥_𝐫𝐯𝟑𝟐]Ξ𝔯𝔳64[𝔠𝔬𝔪𝔭𝔯𝔢𝔰𝔢𝔡_𝔰𝔱𝔢𝔭_𝔡𝔦𝔰𝔭𝔞𝔱𝔠𝔥_𝐫𝐯𝟔𝟒][compressed_instruction_opcode];
+
+                        type 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩 = super::𝗿𝗶𝘀𝗰_𝘃::𝘁𝗮𝗯𝗹𝗲𝘀::Ξ𝔯𝔳32[𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟑𝟐]Ξ𝔯𝔳64[𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟔𝟒];
+
+                        let instruction_bits = if compressed_instruction_step.1 <= 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_7 {
+                           let parcel1: u16 = producer.get_u16()?;
+                           (parcel1 as u32) << 16 | (parcel0 as u32)
+                        } else {
+                            0
+                        };
+
+                        match compressed_instruction_step.1 {
+                            𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_0
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_1
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_2
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_3
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_4
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_5
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_6
+                            | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_7 => {
+                                self.unimplemented_32bit_instruction(instruction_bits)
+                            }
+                            _ => self.unimplemented_16bit_instruction(parcel0)
+                        }
+                    }
 
                     𝔻𝕚𝕤𝕒𝕤𝕤𝕖𝕞𝕓𝕝𝕖𝕣𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟𝕤
 
