@@ -1250,7 +1250,7 @@ impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟔𝟒_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_
 #[cfg(feature = "std")]
 impl std::fmt::Display for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Into::<i32>::into(*self).fmt(f)
+        (self.0 >> 12).fmt(f)
     }
 }
 
