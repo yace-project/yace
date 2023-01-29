@@ -516,7 +516,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let arguments_trait_type =
                     arguments_trait_type.replace("Self::", "<<Self as 𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔_𝒄𝒐𝒏𝒔𝒖𝒎𝒆𝒓>::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮 as 𝑪𝑷𝑼>::");
                 let instruction_info =
-                    format!("#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,{parameters_list}:{arguments_trait_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.instruction(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾},{enums_vector_list})}}");
+                    format!("#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(self,{parameters_list}:{arguments_trait_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.instruction(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾},{enums_vector_list})}}");
                 let disassembler_instructions = leaf_disassembler_instructions[assembler_kind as usize]
                     .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), arguments_type.to_owned()))
                     .or_insert_with(Vec::new);
