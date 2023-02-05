@@ -145,6 +145,14 @@ pub(crate) fn filter_riscv_markers_iterable(
     input: &mut impl Iterator<Item = TokenTree>,
     attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬,
 ) {
+    fn filter_riscv_markers_group(
+        input: &mut Group, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
+    ) -> TokenTree {
+        let mut content = TokenStream::new();
+        filter_riscv_markers_iterable(&mut content, &mut None, &mut input.stream().into_iter(), attributes);
+        Group::new(input.delimiter(), content).into()
+    }
+
     fn emit_tokens(
         output: &mut impl Extend<TokenTree>,
         output_extra: &mut Option<TokenStream>,
@@ -261,6 +269,98 @@ pub(crate) fn filter_riscv_markers_iterable(
                         }
                     }
                 }
+                TokenTree::Group(mut data_group_to_process)
+                    if matches!(data_group_to_process.delimiter(), Delimiter::Parenthesis) =>
+                {
+                    let unwrapped_token_str = unwrapped_token.to_string();
+                    if unwrapped_token_str == "𝔻𝕖𝕔𝕠𝕕𝕖𝟛𝟚𝕓𝕚𝕥𝕀𝕟𝕤𝕥𝕣𝕦𝕔𝕥𝕚𝕠𝕟"
+                    {
+                        let mut group_iter = data_group_to_process.stream().into_iter();
+                        let mut get_chunk = move || {
+                            let mut chunk = TokenStream::new();
+                            loop {
+                                match group_iter.next() {
+                                    Some(TokenTree::Punct(punct)) if punct.as_char() == ',' => break,
+                                    None => break,
+                                    Some(token) => chunk.extend([token]),
+                                }
+                            }
+                            chunk
+                        };
+                        let token_stream: TokenStream;
+                        let ref chunks @ (
+                            ref _opcode,
+                            ref _rm,
+                            ref _rd_bits,
+                            ref _compressed_instruction_step,
+                            ref _instruction_bits,
+                        ) = (
+                            get_chunk(),
+                            {
+                                let Some(TokenTree::Literal(branch)) = get_chunk().into_iter().next() else { panic!("Couldn't find branch value") };
+                                token_stream = 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔦𝔫𝔣𝔬.𝖺𝗌𝗌𝖾𝗆𝖻𝗅𝖾𝗋_𝗂𝗇𝖿𝗈
+                                    [Into::<𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞>::into(
+                                        attributes.𝗋𝗏_𝗆𝗈𝖽𝖾.unwrap(),
+                                    ) as usize]
+                                    .𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌
+                                    [(branch.to_string().as_bytes()[0] - b'0') as usize]
+                                    .parse()
+                                    .unwrap();
+                                get_chunk()
+                            },
+                            get_chunk(),
+                            get_chunk(),
+                            get_chunk(),
+                        );
+                        fn copy_tokens(
+                            output: &mut impl Extend<TokenTree>,
+                            output_extra: &mut Option<TokenStream>,
+                            token_stream: TokenStream,
+                            chunks @ (𝗈𝗉𝖼𝗈𝖽𝖾, rm, rd_bits, compressed_instruction_step, instruction_bits): &(
+                                TokenStream,
+                                TokenStream,
+                                TokenStream,
+                                TokenStream,
+                                TokenStream,
+                            ),
+                        ) {
+                            for token in token_stream {
+                                match token {
+                                    TokenTree::Ident(ident) if matches!(ident.to_string().as_ref(), "opcode") => {
+                                        emit_tokens(output, output_extra, 𝗈𝗉𝖼𝗈𝖽𝖾.clone());
+                                    }
+                                    TokenTree::Ident(ident) if matches!(ident.to_string().as_ref(), "rm") => {
+                                        emit_tokens(output, output_extra, rm.clone());
+                                    }
+                                    TokenTree::Ident(ident) if matches!(ident.to_string().as_ref(), "rd_bits") => {
+                                        emit_tokens(output, output_extra, rd_bits.clone());
+                                    }
+                                    TokenTree::Ident(ident)
+                                        if matches!(ident.to_string().as_ref(), "compressed_instruction_step") =>
+                                    {
+                                        emit_tokens(output, output_extra, compressed_instruction_step.clone());
+                                    }
+                                    TokenTree::Ident(ident) if matches!(ident.to_string().as_ref(), "instruction_bits") => {
+                                        emit_tokens(output, output_extra, instruction_bits.clone());
+                                    }
+                                    TokenTree::Group(input) => {
+                                        let mut content = TokenStream::new();
+                                        copy_tokens(&mut content, &mut None, input.stream(), chunks);
+                                        emit_tokens(output, output_extra, [Group::new(input.delimiter(), content).into()]);
+                                    }
+                                    _ => {
+                                        emit_tokens(output, output_extra, [token]);
+                                    }
+                                }
+                            }
+                        }
+                        copy_tokens(output, output_extra, token_stream, chunks);
+                    } else {
+                        emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
+                        let filered_content = [filter_riscv_markers_group(&mut data_group_to_process, attributes)];
+                        emit_tokens(output, output_extra, filered_content);
+                    }
+                }
                 TokenTree::Group(mut data_group_to_process) => {
                     emit_or_expand_token(output, output_extra, unwrapped_token, attributes);
                     let filered_content = [filter_riscv_markers_group(&mut data_group_to_process, attributes)];
@@ -320,14 +420,6 @@ pub(crate) fn filter_riscv_markers_iterable(
     }
 }
 
-fn filter_riscv_markers_group(
-    input: &mut Group, attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬
-) -> TokenTree {
-    let mut content = TokenStream::new();
-    filter_riscv_markers_iterable(&mut content, &mut None, &mut input.stream().into_iter(), attributes);
-    Group::new(input.delimiter(), content).into()
-}
-
 fn marker_is_compatible<'ᵉˣᵗʳᵃ>(
     marker: &str,
     attributes: 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐚𝐭𝐭𝐫𝐢𝐛𝐮𝐭𝐞𝐬<'ᵉˣᵗʳᵃ>,
@@ -351,6 +443,29 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
     let mut riscv_assembler_instructions = Vec::new();
     let mut assembler_instructions = [Vec::new(), Vec::new(), Vec::new()];
+    const 𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫: BTreeMap<
+        (u32, u32),
+        𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨,
+    > = BTreeMap::new();
+    const 𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔪𝔞𝔧𝔬𝔯_𝔬𝔭𝔠𝔬𝔡𝔢: [BTreeMap<
+        (u32, u32),
+        𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨,
+    >; 32] = [𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫; 32];
+    const 𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔣𝔲𝔫𝔠3_𝔬𝔭𝔠𝔬𝔡𝔢: [[BTreeMap<
+        (u32, u32),
+        𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨,
+    >; 32]; 8] = [𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔪𝔞𝔧𝔬𝔯_𝔬𝔭𝔠𝔬𝔡𝔢; 8];
+    #[allow(clippy::type_complexity)]
+    const 𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔪𝔞𝔭: [[[BTreeMap<
+        (u32, u32),
+        𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨,
+    >; 32]; 8]; 3] = [𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔣𝔲𝔫𝔠3_𝔬𝔭𝔠𝔬𝔡𝔢; 3];
+    let mut disassembler_instructions_map = 𝔫𝔬𝔱_𝔦𝔪𝔭𝔩𝔢𝔪𝔢𝔫𝔱𝔢𝔡_𝔪𝔞𝔭;
+    const 𝔢𝔪𝔭𝔱𝔶_𝔡𝔢𝔠𝔬𝔡𝔢_32𝔟𝔦𝔱_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰: Vec<
+        String,
+    > = Vec::new();
+    const 𝔢𝔪𝔭𝔱𝔶_𝔡𝔢𝔠𝔬𝔡𝔢_32𝔟𝔦𝔱_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔳𝔢𝔠𝔱𝔬𝔯𝔰: [Vec<String>; 8] = [𝔢𝔪𝔭𝔱𝔶_𝔡𝔢𝔠𝔬𝔡𝔢_32𝔟𝔦𝔱_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰; 8];
+    let mut 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌 = [𝔢𝔪𝔭𝔱𝔶_𝔡𝔢𝔠𝔬𝔡𝔢_32𝔟𝔦𝔱_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫𝔰_𝔳𝔢𝔠𝔱𝔬𝔯𝔰; 3];
     let mut disassembler_instructions = [Vec::new(), Vec::new(), Vec::new()];
     let mut instructions_enum_declararion = [String::new(), String::new(), String::new()];
     let mut leaf_assembler_instructions = [BTreeMap::new(), BTreeMap::new(), BTreeMap::new()];
@@ -448,12 +563,13 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let enums_vector_list = format!("[{}].as_slice()", enums_vector_list.join(","));
 
                 let 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾;
+                let 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄;
 
-                let arguments_sql_operands = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
+                let arguments_sql_sources = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
                     .iter()
-                    .map(|argument| argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str())
+                    .map(|argument| argument.𝗌𝗊𝗅_𝗌𝗈𝗎𝗋𝖼𝖾.as_str())
                     .collect::<Vec<_>>();
-                let instruction_emit = match arguments_sql_operands[..] {
+                let instruction_emit = match arguments_sql_sources[..] {
                     [] => format!("self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x})"),
                     ["fencep", "fences"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<24|parameter1<<20)"),
                     ["p:imm(rs1)"] => format!("let base:u32=parameter0.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|base<<15|parameter0.𝖽𝗂𝗌𝗉.0 as u32)"),
@@ -472,8 +588,108 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     ["rd", "u:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.0 as u32)"),
                     ["rs1", "rs2", "b:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<15|parameter1<<20|parameter2.0 as u32)"),
                     ["rs2", "s:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<20|base<<15|parameter1.𝖽𝗂𝗌𝗉.0 as u32)"),
-                    _ => panic!("Unsupported combination of instruction arguments {arguments_sql_operands:?}"),
+                    _ => panic!("Unsupported combination of instruction arguments {arguments_sql_sources:?}"),
                 };
+
+                if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 & 0b1111111 != 0b1111111 || 𝗈𝗉𝖼𝗈𝖽𝖾 & 0b11 != 0b11 {
+                    panic!("Unsupported instruction opcode 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}");
+                }
+                let arguments_sql_operands = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
+                    .iter()
+                    .map(|argument| argument.𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽.as_str())
+                    .collect::<Vec<_>>();
+                let instruction_info =
+                    𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨 {
+                        𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"csr"),
+                        𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"fd"),
+                        𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"rd"),
+                        𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"fs1"),
+                        𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands
+                            .iter()
+                            .any(|&op| op.contains("rs1")),
+                        𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"fs2"),
+                        𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"rs2"),
+                        𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"fs3"),
+                        𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"rm"),
+                        𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽: if arguments_sql_sources.contains(&"<:imm")
+                        {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.contains(&">:imm") {
+                            if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 {
+                                Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                            } else {
+                                Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔴𝔬𝔯𝔡_𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                            }
+                        } else if arguments_sql_sources.contains(&"b:imm") {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔟𝔯𝔞𝔫𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.contains(&"c:imm") {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔠𝔰𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.contains(&"j:imm") {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔧𝔲𝔪𝔭_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.contains(&"u:imm") {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔲𝔭𝔭𝔢𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.iter().any(|&op| op.contains("i:imm")) {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔰𝔬𝔲𝔯𝔠𝔢_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.iter().any(|&op| op.contains("p:imm")) {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else if arguments_sql_sources.iter().any(|&op| op.contains("s:imm")) {
+                            Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔡𝔢𝔰𝔱𝔦𝔫𝔞𝔱𝔦𝔬𝔫_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
+                        } else {
+                            None
+                        },
+                        𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇: match arguments_sql_operands[..] {
+                            [] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}(())"),
+                            ["fd", "fs1", "fs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2))"),
+                            ["fd", "fs1", "fs2", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,rm))"),
+                            ["fd", "fs1", "fs2", "fs3", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,fs3,rm))"),
+                            ["fd", "fs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,rm))"),
+                            ["fd", "rs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1))"),
+                            ["fd", "rs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1,rm))"),
+                            ["fd", "i:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
+                            ["fencep", "fences"] => format!(
+                                "let Ok(fencep)=((instruction_bits>>24)&0b1111).try_into()else{{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ}};let Ok(fences)=((instruction_bits>>20)&0b1111).try_into()else{{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ}};return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fencep,fences))"
+                            ),
+                            ["fs2", "s:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
+                            ["p:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}},))"),
+                            ["rd", "0(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"),
+                            ["rd", "csr", "rs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,rs1))"),
+                            ["rd", "csr", "c:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,imm))"),
+                            ["rd", "fs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,rm))"),
+                            ["rd", "fs1", "fs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,fs2))"),
+                            ["rd", "i:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
+                            ["rd", "j:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"),
+                            ["rd", "fs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1))"),
+                            ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,imm))"),
+                            ["rd", "rs1", "rs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,rs2))"),
+                            ["rd", "rs2", "0(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"),
+                            ["rd", "u:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"),
+                            ["rs1", "rs2", "b:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs1,rs2,imm))"),
+                            ["rs2", "s:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
+                            _ => panic!("Unsupported combination of instruction arguments {arguments_sql_operands:?}"),
+                        },
+                    };
+                match (𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 >> 12) & 0b111 {
+                    0b000 => {
+                        for func3 in 0..=7 {
+                            if disassembler_instructions_map[assembler_kind as usize][func3][((𝗈𝗉𝖼𝗈𝖽𝖾 >> 2) & 0b11111) as usize]
+                                .insert((𝗈𝗉𝖼𝗈𝖽𝖾, !𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄), instruction_info.clone())
+                                .is_some()
+                            {
+                                panic!("Duplicated opcode 0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}")
+                            }
+                        }
+                    }
+                    0b111 => {
+                        if disassembler_instructions_map[assembler_kind as usize][((𝗈𝗉𝖼𝗈𝖽𝖾 >> 12) & 0b111) as usize]
+                            [((𝗈𝗉𝖼𝗈𝖽𝖾 >> 2) & 0b11111) as usize]
+                            .insert((𝗈𝗉𝖼𝗈𝖽𝖾, !𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄), instruction_info)
+                            .is_some()
+                        {
+                            panic!("Duplicated opcode 0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}")
+                        }
+                    }
+                    _ => panic!("Unsupported instruction opcode mask 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}"),
+                }
 
                 let instruction_info =
                     format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,{parameters_list}:{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}");
@@ -522,6 +738,244 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     .or_insert_with(Vec::new);
                 disassembler_instructions.push(instruction_info);
             }
+        }
+        for func3 in 0b0000..0b1000 {
+            let 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌 =
+                &mut 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌[assembler_kind as usize][func3];
+            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ:{match opcode{".to_owned());
+            for 𝗈𝗉𝖼𝗈𝖽𝖾 in 0b000000..0b100000 {
+                let disassembler_instructions_map =
+                    &disassembler_instructions_map[assembler_kind as usize][func3][𝗈𝗉𝖼𝗈𝖽𝖾];
+
+                let mut 𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 = false;
+                let mut 𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽 = None;
+
+                let mut candidate_instructions = 0;
+                let mut collected_opcode_and_mask = None;
+                for ((𝗈𝗉𝖼𝗈𝖽𝖾, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄), instruction) in disassembler_instructions_map.iter()
+                {
+                    let 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 = (!𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) & 0xffff8f80; // Ignore func3 and main_opcode parts.
+                                                                   // No operands instructions can be added to any others.
+                    if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 == 0xffff8f80 {
+                        candidate_instructions += 1;
+                        continue;
+                    }
+                    // Values 5 and 6 are reserved for rm field, instruction would be handled by unimplemented_32bit_instruction.
+                    if instruction.𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 && (func3 == 5 || func3 == 6) {
+                        continue;
+                    }
+
+                    𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+                    𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 |= instruction.𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽;
+
+                    if let Some(immediate) = instruction.𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                        if let Some(𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽) = 𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽
+                        {
+                            // Prefetch is a hint and it's injected in what otherwise would have been 𝔬𝔯𝔦 instruction.
+                            // That means that we would decode immediate twice: first as 𝔬𝔯𝔦 operand and then, if 𝔯𝔡 is zero,
+                            // also as 𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥 operand.
+                            //
+                            // Other insrtructions always use the same immediate type when major opcode is fixed.
+                            if let (𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢, 𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔰𝔬𝔲𝔯𝔠𝔢_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢) =
+                                (𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽, immediate)
+                            {
+                                collected_opcode_and_mask = Some((*𝗈𝗉𝖼𝗈𝖽𝖾, 0x01f00f80));
+                                candidate_instructions += 1;
+                                continue;
+                            } else if 𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽 != immediate {
+                                panic!("Different immediates: {𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽:?} {immediate:?}");
+                            }
+                        } else {
+                            𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽 = Some(immediate)
+                        }
+                    }
+                    if let Some((collected_opcode, collected_opcode_mask)) = collected_opcode_and_mask {
+                        // That's a corner case where we first need to look on top 7 bits and then,
+                        // sometimes, may additionally look on rs2, which is used as opcode extension.
+                        if let (0xfff00000, 0xfe000000) = (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) {
+                            collected_opcode_and_mask = Some((*𝗈𝗉𝖼𝗈𝖽𝖾, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄));
+                            candidate_instructions += 1;
+                            continue;
+                        }
+                        if let (0xfe000000, 0xfff00000) = (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) {
+                            candidate_instructions += 1;
+                            continue;
+                        }
+                        if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 != collected_opcode_mask {
+                            panic!("Incompatible opcodes: 0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x} 0x{collected_opcode:08x} 0x{collected_opcode_mask:08x}");
+                        }
+                    } else {
+                        collected_opcode_and_mask = Some((*𝗈𝗉𝖼𝗈𝖽𝖾, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄));
+                        candidate_instructions += 1;
+                    }
+                }
+
+                if candidate_instructions > 0 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{𝗈𝗉𝖼𝗈𝖽𝖾}=>{{").to_owned());
+                }
+
+                if 𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                        "let Ok(csr)=((instruction_bits>>20)&0b111111111111).try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned(),
+                    );
+                }
+                if 𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 || 𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽
+                {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let rd_bits=compressed_instruction_step as u32+rd_bits as u32;".to_owned());
+                }
+                if 𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(fd)=rd_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(rd)=rd_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 || 𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽
+                {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let rs1_bits=(instruction_bits>>15)&0b11111;".to_owned());
+                }
+                if 𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(fs1)=rs1_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(rs1)=rs1_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 || 𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽
+                {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let rs2_bits=(instruction_bits>>20)&0b11111;".to_owned());
+                }
+                if 𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(fs2)=rs2_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(rs2)=rs2_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let rs3_bits=(instruction_bits>>27)&0b11111;".to_owned());
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let Ok(fs3)=rs3_bits.try_into()else{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ};".to_owned());
+                }
+                if 𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽.is_some() {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("let imm=𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(instruction_bits as i32).into();".to_owned());
+                }
+
+                let mut first_if = true;
+                let mut unprocessed_instructions = 0;
+                for ((𝗈𝗉𝖼𝗈𝖽𝖾, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄), instruction) in disassembler_instructions_map.iter()
+                {
+                    // Ignore func3 and main_opcode parts.
+                    let 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 = (!𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) & 0xffff8f80;
+                    let 𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇: &str = instruction.𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇.as_ref();
+                    // Process all no-operand instructions here.
+                    if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 == 0xffff8f80 {
+                        if first_if {
+                            first_if = false;
+                        } else {
+                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("else ".to_owned());
+                        }
+                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("if instruction_bits==0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}"));
+                        continue;
+                    }
+                    // Values 5 and 6 are reserved for rm field, instruction would be handled by unimplemented_32bit_instruction.
+                    if instruction.𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 && (func3 == 5 || func3 == 6) {
+                        continue;
+                    }
+                    unprocessed_instructions += 1;
+                }
+                if let Some((collected_opcode, collected_opcode_mask)) = collected_opcode_and_mask {
+                    if unprocessed_instructions > 0 {
+                        if !first_if {
+                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("else{".to_owned());
+                        }
+                        match collected_opcode_mask {
+                            0x00000000 => (),
+                            0x01f00f80 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("if rd_bits=={}{{let rs2=(instruction_bits>>20)&0b11111;let imm=𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(instruction_bits as i32).into();match rs2{{", (collected_opcode>>7)&0b11111)),
+                            0x06000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b11{".to_owned()),
+                            0xfc000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 26)&0b111111{".to_owned()),
+                            0xfe000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b1111111{".to_owned()),
+                            _ => panic!("Unsupported opcode mask: 0x{collected_opcode_mask:08x}"),
+                        }
+                        // Note: RISC-V design specifically designates 0 as invalid instruction and it's also compressed one, thus
+                        // it may never be a valid instruction.
+                        let mut last_processed_opcode = 0;
+                        let mut submatch_used = None;
+                        for ((𝗈𝗉𝖼𝗈𝖽𝖾, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄), instruction) in disassembler_instructions_map.iter()
+                        {
+                            // Ignore func3 and main_opcode parts.
+                            let 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 = (!𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) & 0xffff8f80;
+                            // Skip no-operand instructions.
+                            if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 == 0xffff8f80 {
+                                continue;
+                            }
+                            let 𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇: &str = instruction.𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇.as_ref();
+                            // Values 5 and 6 are reserved for rm field, instruction would be handled by unimplemented_32bit_instruction.
+                            if instruction.𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 && (func3 == 5 || func3 == 6) {
+                                continue;
+                            }
+                            match (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) {
+                                (0x01f00f80, 0x00000000) => {
+                                    submatch_used = Some(format!("_=>(),}}}}{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}"));
+                                    unprocessed_instructions -= 1;
+                                }
+                                (0x01f00f80, 0x01f00f80) => {
+                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111));
+                                    unprocessed_instructions -= 1;
+                                }
+                                (0xfe000000, 0xfff00000) => {
+                                    if last_processed_opcode != 𝗈𝗉𝖼𝗈𝖽𝖾 & 0xfe000000 {
+                                        if let Some(submatch_used) = submatch_used.take() {
+                                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(submatch_used);
+                                        }
+                                        last_processed_opcode = 𝗈𝗉𝖼𝗈𝖽𝖾 & 0xfe000000;
+                                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>match rs2_bits{{", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111));
+                                        submatch_used = Some("_=>break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ,}".to_owned());
+                                    }
+                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111));
+                                }
+                                (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄)
+                                    if collected_opcode_mask == 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 =>
+                                {
+                                    if let Some(submatch_used) = submatch_used.take() {
+                                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(submatch_used);
+                                    }
+                                    match collected_opcode_mask {
+                                        0x00000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇};")),
+                                        0x06000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b11)),
+                                        0xfc000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>26)&0b111111)),
+                                        0xfe000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111)),
+                                        _ => panic!("Internal error {𝗈𝗉𝖼𝗈𝖽𝖾} 0x{collected_opcode_mask:08x}"), // Should have been reported already.
+                                    }
+                                }
+                                _ => panic!("Inconsistent opcode masks: 0x{collected_opcode_mask:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}"),
+                            }
+                        }
+                        if let Some(submatch_used) = submatch_used.take() {
+                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(submatch_used);
+                        }
+                        if collected_opcode_mask != 0x00000000 && collected_opcode_mask != 0x01f00f80 {
+                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("_=>break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ}".to_owned());
+                        }
+                        if !first_if {
+                            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("}".to_owned());
+                        }
+                    }
+                }
+                if candidate_instructions > 0 {
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("}".to_owned());
+                }
+            }
+            𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("_=>break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ,}}".to_owned());
         }
         assembler_instructions[assembler_kind as usize].extend(leaf_assembler_instructions[assembler_kind as usize].values().map(
             |assembler_instruction| {
@@ -580,6 +1034,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
+                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌: 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize]
+                    .iter().map(|v| v.concat()).collect::<Vec<_>>().try_into().unwrap(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢 as usize].concat(),
             },
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
@@ -587,6 +1043,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
+                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌: 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize]
+                    .iter().map(|v| v.concat()).collect::<Vec<_>>().try_into().unwrap(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦 as usize].concat(),
             },
             𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞 {
@@ -594,10 +1052,40 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
                 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: assembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
+                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌: 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize]
+                    .iter().map(|v| v.concat()).collect::<Vec<_>>().try_into().unwrap(),
                 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: disassembler_instructions[𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 as usize].concat(),
             },
         ],
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct 𝐝𝐞𝐜𝐨𝐝𝐞𝐝_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧𝐬_𝐢𝐧𝐟𝐨 {
+    𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝖿𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝗋𝖽_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝖿𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝗋𝗌𝟣_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝖿𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: bool,
+    𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽: Option<𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞>,
+    𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇: String,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum 𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞 {
+    𝔟𝔯𝔞𝔫𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔠𝔰𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔡𝔢𝔰𝔱𝔦𝔫𝔞𝔱𝔦𝔬𝔫_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔰𝔬𝔲𝔯𝔠𝔢_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔧𝔲𝔪𝔭_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔲𝔭𝔭𝔢𝔯_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
+    𝔴𝔬𝔯𝔡_𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢,
 }
 
 async fn get_database_connection() -> sqlx::SqliteConnection {
@@ -668,8 +1156,10 @@ where
         };
         for index in 0..operands_count {
             operand_requests.push(formatdoc! {"
-                operand{index}.parameter_type AS type{index},trait{index}.name AS trait{index},
-                operand{index}.operand_source AS operand{index},"});
+                operand{index}.parameter_type AS type{index},
+                trait{index}.name AS trait{index},
+                operand{index}.operand_source AS source{index},
+                operand{index},"});
             let (prefix, suffix) = if index == 0 {
                 ("", "".to_owned())
             } else {
@@ -746,6 +1236,8 @@ where
                 let argument_trait: String = row.try_get(TRAIT[i])?;
                 const OPERAND: [&str; 5] = ["operand0", "operand1", "operand2", "operand3", "operand4"];
                 let operand: String = row.try_get(OPERAND[i])?;
+                const SOURCE: [&str; 5] = ["source0", "source1", "source2", "source3", "source4"];
+                let source: String = row.try_get(SOURCE[i])?;
 
                 let argument_type = *rust_types_map
                     .get(argument.as_str())
@@ -768,6 +1260,7 @@ where
 
                 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.push(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
                     𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: argument,
+                    𝗌𝗊𝗅_𝗌𝗈𝗎𝗋𝖼𝖾: source,
                     𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: operand,
                     𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: argument_type,
                     𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍: argument_enum_variant,
@@ -818,6 +1311,7 @@ struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲�
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭_𝐭𝐲𝐩𝐞 {
     𝗌𝗊𝗅_𝗍𝗒𝗉𝖾: String,
+    𝗌𝗊𝗅_𝗌𝗈𝗎𝗋𝖼𝖾: String,
     𝗌𝗊𝗅_𝗈𝗉𝖾𝗋𝖺𝗇𝖽: String,
     𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾: &'static str,
     𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍: &'static str,
@@ -837,8 +1331,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔢𝔫𝔲𝔪: Lazy<HashMap<&'static str, &'stat
         "fence" => "𝔣𝔢𝔫𝔠𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "fpr" => "𝔣𝔭_𝔯𝔢𝔤𝔦𝔰𝔱𝔢𝔯_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "gpr" => "𝔤𝔭_𝔯𝔢𝔤𝔦𝔰𝔱𝔢𝔯_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
-        "imm" => "𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
-        "imm(gpr)" => "𝔰𝔬𝔲𝔯𝔠𝔢_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "i:imm" => "𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
+        "i:imm(gpr)" => "𝔰𝔬𝔲𝔯𝔠𝔢_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "j:imm" => "𝔧𝔲𝔪𝔭_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "p:imm(gpr)" => "𝔭𝔯𝔢𝔣𝔢𝔱𝔠𝔥_𝔞𝔡𝔡𝔯𝔢𝔰𝔰_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
         "rm" => "𝔯𝔬𝔲𝔫𝔡𝔦𝔫𝔤_𝔪𝔬𝔡𝔢_𝔬𝔭𝔢𝔯𝔞𝔫𝔡",
@@ -860,8 +1354,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
         "fence" => "Self::𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "Self::𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
-        "imm" => "Self::𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, Self::𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
+        "i:imm" => "Self::𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "i:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, Self::𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "j:imm" => "Self::𝐣𝐮𝐦𝐩_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, Self::𝐩𝐫𝐞𝐟𝐞𝐭𝐜𝐡_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "prefetch_assembler_operand" => "𝒑𝒓𝒆𝒇𝒆𝒕𝒄𝒉_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
@@ -885,8 +1379,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32𝔢: Lazy<HashMap<&'sta
         "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞",
-        "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
+        "i:imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "i:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "j:imm" => "𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜_𝐫𝐯𝟑𝟐𝐞, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -905,8 +1399,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳32: Lazy<HashMap<&'static 
         "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
-        "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
+        "i:imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "i:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "j:imm" => "𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -926,8 +1420,8 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_𝔯𝔳64: Lazy<HashMap<&'static 
         "fence" => "𝐟𝐞𝐧𝐜𝐞",
         "fpr" => "𝐟𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
         "gpr" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜",
-        "imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
-        "imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
+        "i:imm" => "𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
+        "i:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "j:imm" => "𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
         "p:imm(gpr)" => "𝒂𝒅𝒅𝒓𝒆𝒔𝒔<𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_𝐧𝐮𝐦𝐞𝐫𝐢𝐜, 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞>",
         "s:imm" => "𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞",
@@ -948,5 +1442,6 @@ pub(crate) struct 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐢𝐧𝐟𝐨_𝐭𝐲
     pub(crate) 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌: String,
     pub(crate) 𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌: String,
     pub(crate) 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖻𝗒𝗍𝖾_𝖾𝗆𝗂𝗍_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍𝖺𝗍𝗂𝗈𝗇: String,
+    pub(crate) 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌: [String; 8],
     pub(crate) 𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌_𝖼𝗈𝗇𝗌𝗎𝗆𝖾_𝗋𝖾𝖽𝗂𝗋𝖾𝖼𝗍𝗈𝗋𝗌: String,
 }
