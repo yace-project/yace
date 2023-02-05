@@ -12,6 +12,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#[path = "immediates.rs"]
+pub(crate) mod 𝗶𝗺𝗺𝗲𝗱𝗶𝗮𝘁𝗲𝘀;
+
 #[macro_use]
 #[path = "macros.rs"]
 mod 𝗺𝗮𝗰𝗿𝗼𝘀;

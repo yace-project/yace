@@ -13,35 +13,31 @@
  */
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
+pub struct 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
-pub struct 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(pub(crate) i32);
-
-// Used mostly by decoder, newtype for From/Into traits.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(pub i32);
+pub struct 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(i32);
 
 #[cfg(feature = "std")]
 impl std::fmt::Display for 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
@@ -52,12 +48,8 @@ impl std::fmt::Display for 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x1fff080)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x000007e0) << 20 | (imm & 0x0000001f) << 7 | (imm & 0x00000800) >> 4)
+    pub fn new(imm: impl 𝑩_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -68,18 +60,19 @@ impl 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑩_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x000007e0) << 20 | (imm & 0x0000001f) << 7 | (imm & 0x00000800) >> 4)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x1fff080)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑩_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐁_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -212,12 +205,8 @@ impl std::fmt::Display for 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x0000f8000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 15)
+    pub fn new(imm: impl 𝒄𝒔𝒓_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -228,18 +217,19 @@ impl 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝒄𝒔𝒓_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 15)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x0000f8000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝒄𝒔𝒓_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐜𝐬𝐫_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -361,12 +351,8 @@ impl std::fmt::Display for 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00100000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    pub fn new(imm: impl 𝑰_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -377,18 +363,19 @@ impl 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑰_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00100000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑰_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐈_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -536,12 +523,8 @@ impl std::fmt::Display for 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00001000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x0000007ff) << 20 | (imm & 0x00000800) << 9 | (imm & 0x000ff000))
+    pub fn new(imm: impl 𝑱_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -552,18 +535,19 @@ impl 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑱_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & -0x80000000) | (imm & 0x0000007ff) << 20 | (imm & 0x00000800) << 9 | (imm & 0x000ff000))
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00001000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑱_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐉_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -695,12 +679,8 @@ impl std::fmt::Display for 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x02000000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & 0x00000fe0) << 20)
+    pub fn new(imm: impl 𝑷_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -711,18 +691,19 @@ impl 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑷_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & 0x00000fe0) << 20)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x02000000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑷_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐏_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -844,12 +825,8 @@ impl std::fmt::Display for 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x01fff080)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & 0x00000fe0) << 20 | (imm & 0x0000001f) << 7)
+    pub fn new(imm: impl 𝑺_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -860,18 +837,19 @@ impl 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑺_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞((imm & 0x00000fe0) << 20 | (imm & 0x0000001f) << 7)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x01fff080)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑺_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -1018,12 +996,8 @@ impl std::fmt::Display for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦�
 
 impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x01f00000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    pub fn new(imm: impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟑𝟐_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -1034,18 +1008,19 @@ impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟑𝟐_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x01f00000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟑𝟐_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟑𝟐_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -1167,12 +1142,8 @@ impl std::fmt::Display for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦�
 
 impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x03f00000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    pub fn new(imm: impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟔𝟒_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -1183,18 +1154,19 @@ impl 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟔𝟒_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm << 20)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & 0x03f00000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝒔𝒉𝒊𝒇𝒕_𝑹𝑽𝟔𝟒_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐬𝐡𝐢𝐟𝐭_𝐑𝐕𝟔𝟒_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -1316,12 +1288,8 @@ impl std::fmt::Display for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 
 impl 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
     #[inline(always)]
-    pub const fn new_from_instruction(encoding: i32) -> 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00001000)
-    }
-    #[inline(always)]
-    pub const unsafe fn new_unchecked(imm: i32) -> 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm)
+    pub fn new(imm: impl 𝑼_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
+        imm.try_into().ok()
     }
     #[inline(always)]
     pub const fn new_const(imm: i32) -> Option<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
@@ -1332,18 +1300,19 @@ impl 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
         }
     }
     #[inline(always)]
-    pub fn new(imm: impl 𝑼_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆) -> Option<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {
-        imm.try_into().ok()
+    pub const unsafe fn new_unchecked(imm: i32) -> 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(imm)
+    }
+    #[inline(always)]
+    pub const fn new_from_encoded(encoding: i32) -> 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
+        𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞(encoding & -0x00001000)
+    }
+    #[inline(always)]
+    pub const fn encoded(self) -> i32 {
+        self.0
     }
 }
 pub trait 𝑼_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆: TryInto<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> {}
-
-impl From<𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧> for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-    #[inline(always)]
-    fn from(𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(encoding): 𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧) -> 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
-        𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞::new_from_instruction(encoding)
-    }
-}
 
 impl From<𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞> for i32 {
     #[inline(always)]
@@ -1457,3 +1426,7 @@ impl TryFrom<u64> for 𝐔_𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞 {
 impl 𝑼_𝒊𝒎𝒎𝒆𝒅𝒊𝒂𝒕𝒆_𝒔𝒐𝒖𝒓𝒄𝒆 for u64 {}
 
 use super::super::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
+
+#[path = "immediates-tests.rs"]
+#[cfg(test)]
+mod 𝘁𝗲𝘀𝘁𝘀;
