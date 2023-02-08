@@ -952,7 +952,7 @@ fn main() {
                 | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟑𝟐::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_7
                     => panic!("Unsupported enum value {:?}!", primary_table_rv32[index].1),
             }
-            let producer = 𝐭𝐞𝐬𝐭_𝐩𝐫𝐨𝐝𝐮𝐜𝐞𝐫::new(vec![encoded_alt_parcel]);
+            let producer = 𝐭𝐞𝐬𝐭_𝐩𝐫𝐨𝐝𝐮𝐜𝐞𝐫::new(vec![encoded_alt_parcel.to_le()]);
             let verifier = 𝐬𝐢𝐦𝐩𝐥𝐞_𝐝𝐞𝐜𝐨𝐝𝐞𝐫_𝗿𝘃𝟯𝟮𝗶::new(alt_instruction_rv32.0, alt_instruction_rv32.1);
             if verifier.decode(producer).is_err() {
                 panic!("Unhandled instruction");
@@ -1420,7 +1420,7 @@ fn main() {
                 | 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟔𝟒::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_7
                     => panic!("Unsupported enum value {:?}!", primary_table_rv32[index].1),
             }
-            let producer = 𝐭𝐞𝐬𝐭_𝐩𝐫𝐨𝐝𝐮𝐜𝐞𝐫::new(vec![encoded_alt_parcel]);
+            let producer = 𝐭𝐞𝐬𝐭_𝐩𝐫𝐨𝐝𝐮𝐜𝐞𝐫::new(vec![encoded_alt_parcel.to_le()]);
             let verifier = 𝐬𝐢𝐦𝐩𝐥𝐞_𝐝𝐞𝐜𝐨𝐝𝐞𝐫_𝗿𝘃𝟲𝟰𝗶::new(alt_instruction_rv64.0, alt_instruction_rv64.1);
             if verifier.decode(producer).is_err() {
                 panic!("Unhandled instruction");

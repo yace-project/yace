@@ -21,7 +21,10 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓 {
     }
     #[inline(always)]
     fn get_u16(&mut self) -> Result<u16, Box<dyn std::error::Error>> {
-        Ok((self.get_u8()? as u16) | (self.get_u8()? as u16) << 8)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u8()? as u16) << 8 | (self.get_u8()? as u16))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u8()? as u16) | (self.get_u8()? as u16) << 8)}
     }
     #[inline(always)]
     fn get_i16(&mut self) -> Result<i16, Box<dyn std::error::Error>> {
@@ -29,7 +32,10 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓 {
     }
     #[inline(always)]
     fn get_u32(&mut self) -> Result<u32, Box<dyn std::error::Error>> {
-        Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u16()? as u32) << 16 | (self.get_u16()? as u32))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)}
     }
     #[inline(always)]
     fn get_i32(&mut self) -> Result<i32, Box<dyn std::error::Error>> {
@@ -37,7 +43,10 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓 {
     }
     #[inline(always)]
     fn get_u64(&mut self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u32()? as u64) << 32 | (self.get_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_i64(&mut self) -> Result<i64, Box<dyn std::error::Error>> {
@@ -45,7 +54,10 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓 {
     }
     #[inline(always)]
     fn get_u128(&mut self) -> Result<u128, Box<dyn std::error::Error>> {
-        Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u64()? as u128) << 64 | (self.get_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_i128(&mut self) -> Result<i128, Box<dyn std::error::Error>> {
@@ -110,7 +122,10 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓
     }
     #[inline(always)]
     fn get_u32(&mut self) -> Result<u32, Box<dyn std::error::Error>> {
-        Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u16()? as u32) << 16 | (self.get_u16()? as u32))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)}
     }
     #[inline(always)]
     fn get_i32(&mut self) -> Result<i32, Box<dyn std::error::Error>> {
@@ -118,7 +133,10 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓
     }
     #[inline(always)]
     fn get_u64(&mut self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u32()? as u64) << 32 | (self.get_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_i64(&mut self) -> Result<i64, Box<dyn std::error::Error>> {
@@ -126,7 +144,10 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓
     }
     #[inline(always)]
     fn get_u128(&mut self) -> Result<u128, Box<dyn std::error::Error>> {
-        Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u64()? as u128) << 64 | (self.get_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_i128(&mut self) -> Result<i128, Box<dyn std::error::Error>> {
@@ -184,7 +205,10 @@ pub trait 𝒅𝒚𝒏_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒑𝒓�
     }
     #[inline(always)]
     fn get_u64(&mut self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u32()? as u64) << 32 | (self.get_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_i64(&mut self) -> Result<i64, Box<dyn std::error::Error>> {
@@ -192,7 +216,10 @@ pub trait 𝒅𝒚𝒏_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒑𝒓�
     }
     #[inline(always)]
     fn get_u128(&mut self) -> Result<u128, Box<dyn std::error::Error>> {
-        Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u64()? as u128) << 64 | (self.get_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_i128(&mut self) -> Result<i128, Box<dyn std::error::Error>> {
@@ -241,7 +268,10 @@ pub trait 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒑𝒂𝒓𝒄�
     }
     #[inline(always)]
     fn get_bytes_u16(&mut self) -> Result<u16, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_u8()? as u16) | (self.get_u8()? as u16) << 8)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u8()? as u16) << 8 | (self.get_u8()? as u16))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u8()? as u16) | (self.get_u8()? as u16) << 8)}
     }
     #[inline(always)]
     fn get_bytes_i16(&mut self) -> Result<i16, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -249,7 +279,10 @@ pub trait 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒑𝒂𝒓𝒄�
     }
     #[inline(always)]
     fn get_bytes_u32(&mut self) -> Result<u32, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_bytes_u16()? as u32) | (self.get_bytes_u16()? as u32) << 16)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_bytes_u16()? as u32) << 16 | (self.get_bytes_u16()? as u32))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_bytes_u16()? as u32) | (self.get_bytes_u16()? as u32) << 16)}
     }
     #[inline(always)]
     fn get_bytes_i32(&mut self) -> Result<i32, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -257,7 +290,10 @@ pub trait 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒑𝒂𝒓𝒄�
     }
     #[inline(always)]
     fn get_bytes_u64(&mut self) -> Result<u64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_bytes_u32()? as u64) | (self.get_bytes_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_bytes_u32()? as u64) << 32 | (self.get_bytes_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_bytes_u32()? as u64) | (self.get_bytes_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_bytes_i64(&mut self) -> Result<i64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -265,7 +301,10 @@ pub trait 𝒃𝒚𝒕𝒆_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒑𝒂𝒓𝒄�
     }
     #[inline(always)]
     fn get_bytes_u128(&mut self) -> Result<u128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_bytes_u64()? as u128) | (self.get_bytes_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_bytes_u64()? as u128) << 64 | (self.get_bytes_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_bytes_u64()? as u128) | (self.get_bytes_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_bytes_i128(&mut self) -> Result<i128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -316,7 +355,10 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒎𝒂�
     }
     #[inline(always)]
     fn get_parcels_u32(&mut self) -> Result<u32, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u16()? as u32) << 16 | (self.get_u16()? as u32))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u16()? as u32) | (self.get_u16()? as u32) << 16)}
     }
     #[inline(always)]
     fn get_parcels_i32(&mut self) -> Result<i32, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -324,7 +366,10 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒎𝒂�
     }
     #[inline(always)]
     fn get_parcels_u64(&mut self) -> Result<u64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_parcels_u32()? as u64) | (self.get_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_parcels_u32()? as u64) << 32 | (self.get_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_parcels_u32()? as u64) | (self.get_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_parcels_i64(&mut self) -> Result<i64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -332,7 +377,10 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒑𝒓𝒐𝒅𝒖𝒄𝒆𝒓: 𝒎𝒂�
     }
     #[inline(always)]
     fn get_parcels_u128(&mut self) -> Result<u128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_parcels_u64()? as u128) | (self.get_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_parcels_u64()? as u128) << 64 | (self.get_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_parcels_u64()? as u128) | (self.get_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_parcels_i128(&mut self) -> Result<i128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -375,7 +423,10 @@ pub trait 𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒑𝒓𝒐𝒅𝒖𝒄
     }
     #[inline(always)]
     fn get_u64(&mut self) -> Result<u64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u32()? as u64) << 32 | (self.get_u32()? as u64))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u32()? as u64) | (self.get_u32()? as u64) << 32)}
     }
     #[inline(always)]
     fn get_i64(&mut self) -> Result<i64, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -383,7 +434,10 @@ pub trait 𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒑𝒓𝒐𝒅𝒖𝒄
     }
     #[inline(always)]
     fn get_u128(&mut self) -> Result<u128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)
+        #[cfg(target_endian = "big")]
+        {Ok((self.get_u64()? as u128) << 64 | (self.get_u64()? as u128))}
+        #[cfg(target_endian = "little")]
+        {Ok((self.get_u64()? as u128) | (self.get_u64()? as u128) << 64)}
     }
     #[inline(always)]
     fn get_i128(&mut self) -> Result<i128, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {

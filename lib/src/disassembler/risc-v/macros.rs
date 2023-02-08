@@ -83,7 +83,7 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖗𝖎𝖘𝖈𝖛_𝖉𝖎𝖘𝖆𝖘�
                         // and 6-9 becomes rd_field (although it includes only 3 bits, but you get the remaining two during
                         // processing of the compressed_instruction_opcode).
 
-                        let parcel0: u16 = producer.get_u16()?;
+                        let parcel0: u16 = producer.get_u16()?.to_le();
                         let compressed_instruction_opcode = (((parcel0 >> 8) & 0xfc) | (parcel0 & 0x3));
                         let opcode = ((parcel0 >> 2) & 0x1f);
                         let rd_bits = ((parcel0 >> 7) & 0x07);
@@ -94,8 +94,11 @@ macro_rules! 𝖉𝖊𝖋𝖎𝖓𝖊_𝖗𝖎𝖘𝖈𝖛_𝖉𝖎𝖘𝖆𝖘�
                         type 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩 = 𝘁𝗮𝗯𝗹𝗲𝘀::Ξ𝔯𝔳32[𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟑𝟐]Ξ𝔯𝔳64[𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩_𝐫𝐯𝟔𝟒];
 
                         let instruction_bits = if compressed_instruction_step.1 <= 𝐜𝐨𝐦𝐩𝐫𝐞𝐬𝐞𝐝_𝐬𝐭𝐞𝐩::𝔩𝔬𝔫𝔤_𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔣𝔲𝔫𝔠3_7 {
-                            let parcel1: u16 = producer.get_u16()?;
-                            (parcel1 as u32) << 16 | (parcel0 as u32)
+                            let parcel1: u16 = producer.get_u16()?.to_le();
+                            #[cfg(target_endian = "big")]
+                            {(parcel1 as u32) | (parcel0 as u32) << 16}
+                            #[cfg(target_endian = "little")]
+                            {(parcel1 as u32) << 16 | (parcel0 as u32)}
                         } else {
                             parcel0 as u32
                         };

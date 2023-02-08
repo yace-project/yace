@@ -21,8 +21,12 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u16(&mut self, value: u16) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u8(value as u8)?;
-        Ok(self.emit_u8((value >> 8) as u8)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u8((value >> 8) as u8)?;
+            Ok(self.emit_u8(value as u8)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u8(value as u8)?;
+            Ok(self.emit_u8((value >> 8) as u8)?)}
     }
     #[inline(always)]
     fn emit_i16(&mut self, value: i16) -> Result<(), Box<dyn std::error::Error>> {
@@ -30,8 +34,12 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u32(&mut self, value: u32) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u16(value as u16)?;
-        Ok(self.emit_u16((value >> 16) as u16)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u16((value >> 16) as u16)?;
+            Ok(self.emit_u16(value as u16)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u16(value as u16)?;
+            Ok(self.emit_u16((value >> 16) as u16)?)}
     }
     #[inline(always)]
     fn emit_i32(&mut self, value: i32) -> Result<(), Box<dyn std::error::Error>> {
@@ -39,8 +47,12 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u64(&mut self, value: u64) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u32(value as u32)?;
-        Ok(self.emit_u32((value >> 32) as u32)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u32((value >> 32) as u32)?;
+            Ok(self.emit_u32(value as u32)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u32(value as u32)?;
+            Ok(self.emit_u32((value >> 32) as u32)?)}
     }
     #[inline(always)]
     fn emit_i64(&mut self, value: i64) -> Result<(), Box<dyn std::error::Error>> {
@@ -48,17 +60,58 @@ pub trait 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u128(&mut self, value: u128) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u64(value as u64)?;
-        Ok(self.emit_u64((value >> 64) as u64)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u64((value >> 64) as u64)?;
+            Ok(self.emit_u64(value as u64)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u64(value as u64)?;
+            Ok(self.emit_u64((value >> 64) as u64)?)}
     }
     #[inline(always)]
     fn emit_i128(&mut self, value: i128) -> Result<(), Box<dyn std::error::Error>> {
         self.emit_u128(value as u128)
     }
+    #[inline(always)]
+    fn emit_u8_slice(&mut self, 𝗌𝗅𝗂𝖼𝖾: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+        let mut index = 0;
+        while index + 16 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+16]);
+            self.emit_u128(u128::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?;
+            index += 16;
+        }
+        if index + 8 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+8]);
+            self.emit_u64(u64::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?;
+            index += 8;
+        }
+        if index + 4 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+4]);
+            self.emit_u32(u32::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?;
+            index += 4;
+        }
+        if index + 2 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+2]);
+            self.emit_u16(u16::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?;
+            index += 2;
+        }
+        if index + 1 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 1];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+1]);
+            self.emit_u8(u8::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(feature = "std")]
-impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for dyn 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 + 'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ {
+impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for dyn 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 + 'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ
+where
+    Self: 𝒆𝒎𝒊𝒕𝒕𝒆𝒓<𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = (), 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = Box<dyn std::error::Error>>
+{
     fn emit_u8(&mut self, value: u8) -> Result<(), Box<dyn std::error::Error>> {
         <Self as 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::emit_u8(self, value)
     }
@@ -98,14 +151,24 @@ impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒃𝒚𝒕𝒆_𝒆𝒎�
     fn emit_bytes_i128(&mut self, value: i128) -> Result<(), Box<dyn std::error::Error>> {
         <Self as 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::emit_i128(self, value)
     }
+    #[allow(non_upper_case_globals)]
+    #[inline(always)]
+    fn emit_u8_array<const 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮: usize>(&mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮])
+        -> Result<(), Box<dyn std::error::Error>>
+    where Self: 𝒊𝒏𝒕_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<u8, { 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮 }> {
+        <Self as 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::emit_u8_slice(self, &𝖺𝗋𝗋𝖺𝗒[..])
+    }
+    #[inline(always)]
+    fn emit_u8_slice(&mut self, 𝗌𝗅𝗂𝖼𝖾: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+        <Self as 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::emit_u8_slice(self, 𝗌𝗅𝗂𝖼𝖾)
+    }
 }
 
 #[cfg(feature = "std")]
 impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for dyn 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 + 'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ {
     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = ();
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = Box<dyn std::error::Error>;
-    fn combine_results(_: (), _: ()) -> () {
-        ()
+    fn combine_results(_: &mut (), _: ()) {
     }
 }
 
@@ -118,8 +181,12 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u32(&mut self, value: u32) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u16(value as u16)?;
-        Ok(self.emit_u16((value >> 16) as u16)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u16((value >> 16) as u16)?;
+            Ok(self.emit_u16(value as u16)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u16(value as u16)?;
+            Ok(self.emit_u16((value >> 16) as u16)?)}
     }
     #[inline(always)]
     fn emit_i32(&mut self, value: i32) -> Result<(), Box<dyn std::error::Error>> {
@@ -127,8 +194,12 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u64(&mut self, value: u64) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u32(value as u32)?;
-        Ok(self.emit_u32((value >> 32) as u32)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u32((value >> 32) as u32)?;
+            Ok(self.emit_u32(value as u32)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u32(value as u32)?;
+            Ok(self.emit_u32((value >> 32) as u32)?)}
     }
     #[inline(always)]
     fn emit_i64(&mut self, value: i64) -> Result<(), Box<dyn std::error::Error>> {
@@ -136,8 +207,12 @@ pub trait 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
     }
     #[inline(always)]
     fn emit_u128(&mut self, value: u128) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u64(value as u64)?;
-        Ok(self.emit_u64((value >> 64) as u64)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u64((value >> 64) as u64)?;
+            Ok(self.emit_u64(value as u64)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u64(value as u64)?;
+            Ok(self.emit_u64((value >> 64) as u64)?)}
     }
     #[inline(always)]
     fn emit_i128(&mut self, value: i128) -> Result<(), Box<dyn std::error::Error>> {
@@ -185,8 +260,7 @@ impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒑𝒂𝒓𝒄𝒆𝒍_�
 impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for dyn 𝒅𝒚𝒏_𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 + 'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ {
     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = ();
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = Box<dyn std::error::Error>;
-    fn combine_results(_: (), _: ()) -> () {
-        ()
+    fn combine_results(_: &mut (), _: ()) {
     }
 }
 
@@ -199,8 +273,12 @@ pub trait 𝒅𝒚𝒏_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒆𝒎�
     }
     #[inline(always)]
     fn emit_u64(&mut self, value: u64) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u32(value as u32)?;
-        Ok(self.emit_u32((value >> 32) as u32)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u32((value >> 32) as u32)?;
+            Ok(self.emit_u32(value as u32)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u32(value as u32)?;
+            Ok(self.emit_u32((value >> 32) as u32)?)}
     }
     #[inline(always)]
     fn emit_i64(&mut self, value: i64) -> Result<(), Box<dyn std::error::Error>> {
@@ -208,8 +286,12 @@ pub trait 𝒅𝒚𝒏_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒆𝒎�
     }
     #[inline(always)]
     fn emit_u128(&mut self, value: u128) -> Result<(), Box<dyn std::error::Error>> {
-        self.emit_u64(value as u64)?;
-        Ok(self.emit_u64((value >> 64) as u64)?)
+        #[cfg(target_endian = "big")]
+        {   self.emit_u64((value >> 64) as u64)?;
+            Ok(self.emit_u64(value as u64)?)}
+        #[cfg(target_endian = "little")]
+        {   self.emit_u64(value as u64)?;
+            Ok(self.emit_u64((value >> 64) as u64)?)}
     }
     #[inline(always)]
     fn emit_i128(&mut self, value: i128) -> Result<(), Box<dyn std::error::Error>> {
@@ -249,8 +331,7 @@ impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒎𝒂𝒄𝒉𝒊𝒏𝒆
 impl<'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ> 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for dyn 𝒅𝒚𝒏_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 + 'ᵉᵐⁱᵗᵗᵉʳ_ˡⁱᶠᵉᵗⁱᵐᵉ {
     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = ();
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = Box<dyn std::error::Error>;
-    fn combine_results(_: (), _: ()) -> () {
-        ()
+    fn combine_results(_: &mut (), _: ()) {
     }
 }
 
@@ -262,8 +343,14 @@ pub trait 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒑𝒂𝒓𝒄𝒆�
     }
     #[inline(always)]
     fn emit_bytes_u16(&mut self, value: u16) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_u8(value as u8)?,
-                                 self.emit_u8((value >> 8) as u8)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_u8((value >> 8) as u8)?;
+            Self::combine_results(&mut result, self.emit_u8(value as u8)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_u8(value as u8)?;
+            Self::combine_results(&mut result, self.emit_u8((value >> 8) as u8)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_bytes_i16(&mut self, value: i16) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -271,8 +358,14 @@ pub trait 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒑𝒂𝒓𝒄𝒆�
     }
     #[inline(always)]
     fn emit_bytes_u32(&mut self, value: u32) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_bytes_u16(value as u16)?,
-                                 self.emit_bytes_u16((value >> 16) as u16)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_bytes_u16((value >> 16) as u16)?;
+            Self::combine_results(&mut result, self.emit_bytes_u16(value as u16)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_bytes_u16(value as u16)?;
+            Self::combine_results(&mut result, self.emit_bytes_u16((value >> 16) as u16)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_bytes_i32(&mut self, value: i32) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -280,8 +373,14 @@ pub trait 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒑𝒂𝒓𝒄𝒆�
     }
     #[inline(always)]
     fn emit_bytes_u64(&mut self, value: u64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_bytes_u32(value as u32)?,
-                                 self.emit_bytes_u32((value >> 32) as u32)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_bytes_u32((value >> 32) as u32)?;
+            Self::combine_results(&mut result, self.emit_bytes_u32(value as u32)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_bytes_u32(value as u32)?;
+            Self::combine_results(&mut result, self.emit_bytes_u32((value >> 32) as u32)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_bytes_i64(&mut self, value: i64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -289,8 +388,14 @@ pub trait 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒑𝒂𝒓𝒄𝒆�
     }
     #[inline(always)]
     fn emit_bytes_u128(&mut self, value: u128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_bytes_u64(value as u64)?,
-                                 self.emit_bytes_u64((value >> 64) as u64)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_bytes_u64((value >> 64) as u64)?;
+            Self::combine_results(&mut result, self.emit_bytes_u64(value as u64)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_bytes_u64(value as u64)?;
+            Self::combine_results(&mut result, self.emit_bytes_u64((value >> 64) as u64)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_bytes_i128(&mut self, value: i128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -302,6 +407,39 @@ pub trait 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒑𝒂𝒓𝒄𝒆�
         -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
     where Self: 𝒊𝒏𝒕_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<u8, { 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮 }> {
         <Self as 𝒊𝒏𝒕_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<u8, { 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮 }>>::emit_array(self, 𝖺𝗋𝗋𝖺𝗒)
+    }
+    #[inline(always)]
+    fn emit_u8_slice(&mut self, 𝗌𝗅𝗂𝖼𝖾: &[u8]) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
+        let mut index = 0;
+        let mut result = Default::default();
+        while index + 16 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+16]);
+            Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?);
+            index += 16;
+        }
+        if index + 8 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+8]);
+            Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?);
+            index += 8;
+        }
+        if index + 4 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+4]);
+            Self::combine_results(&mut result, self.emit_bytes_u32(u32::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?);
+            index += 4;
+        }
+        if index + 2 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            let mut 𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+            𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝗌𝗅𝗂𝖼𝖾[index..index+2]);
+            Self::combine_results(&mut result, self.emit_bytes_u16(u16::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))?);
+            index += 2;
+        }
+        if index + 1 <= 𝗌𝗅𝗂𝖼𝖾.len() {
+            Self::combine_results(&mut result, self.emit_u8(𝗌𝗅𝗂𝖼𝖾[index])?);
+        }
+        Ok(result)
     }
 }
 
@@ -355,8 +493,14 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒎𝒂𝒄�
     }
     #[inline(always)]
     fn emit_parcels_u32(&mut self, value: u32) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_u16(value as u16)?,
-                                 self.emit_u16((value >> 16) as u16)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_u16((value >> 16) as u16)?;
+            Self::combine_results(&mut result, self.emit_u16(value as u16)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_u16(value as u16)?;
+            Self::combine_results(&mut result, self.emit_u16((value >> 16) as u16)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_parcels_i32(&mut self, value: i32) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -364,8 +508,14 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒎𝒂𝒄�
     }
     #[inline(always)]
     fn emit_parcels_u64(&mut self, value: u64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_parcels_u32(value as u32)?,
-                                 self.emit_parcels_u32((value >> 32) as u32)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_parcels_u32((value >> 32) as u32)?;
+            Self::combine_results(&mut result, self.emit_parcels_u32(value as u32)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_parcels_u32(value as u32)?;
+            Self::combine_results(&mut result, self.emit_parcels_u32((value >> 32) as u32)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_parcels_i64(&mut self, value: i64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -373,8 +523,14 @@ pub trait 𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓: 𝒎𝒂𝒄�
     }
     #[inline(always)]
     fn emit_parcels_u128(&mut self, value: u128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_parcels_u64(value as u64)?,
-                                 self.emit_parcels_u64((value >> 64) as u64)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_parcels_u64((value >> 64) as u64)?;
+            Self::combine_results(&mut result, self.emit_parcels_u64(value as u64)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_parcels_u64(value as u64)?;
+            Self::combine_results(&mut result, self.emit_parcels_u64((value >> 64) as u64)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_parcels_i128(&mut self, value: i128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -424,8 +580,14 @@ pub trait 𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒆𝒎𝒊𝒕𝒕𝒆
     }
     #[inline(always)]
     fn emit_u64(&mut self, value: u64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_u32(value as u32)?,
-                                 self.emit_u32((value >> 32) as u32)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_u32((value >> 32) as u32)?;
+            Self::combine_results(&mut result, self.emit_u32(value as u32)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_u32(value as u32)?;
+            Self::combine_results(&mut result, self.emit_u32((value >> 32) as u32)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_i64(&mut self, value: i64) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -433,8 +595,14 @@ pub trait 𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅_𝒆𝒎𝒊𝒕𝒕𝒆
     }
     #[inline(always)]
     fn emit_u128(&mut self, value: u128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_u64(value as u64)?,
-                                 self.emit_u64((value >> 64) as u64)?))
+        #[cfg(target_endian = "big")]
+        {   let mut result = self.emit_u64((value >> 64) as u64)?;
+            Self::combine_results(&mut result, self.emit_u64(value as u64)?);
+            Ok(result)}
+        #[cfg(target_endian = "little")]
+        {   let mut result = self.emit_u64(value as u64)?;
+            Self::combine_results(&mut result, self.emit_u64((value >> 64) as u64)?);
+            Ok(result)}
     }
     #[inline(always)]
     fn emit_i128(&mut self, value: i128) -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
@@ -450,9 +618,9 @@ pub trait 𝒓𝒆𝒃𝒊𝒏𝒅_𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒘𝒐𝒓𝒅
 }
 
 pub trait 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 {
-    type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+    type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞: Default;
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
-    fn combine_results(x: Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, y: Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞) -> Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+    fn combine_results(x: &mut Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, y: Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞);
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -462,8 +630,7 @@ impl 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐝𝐮𝐦𝐦𝐲_𝐞𝐦𝐢𝐭𝐭�
     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = ();
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = core::convert::Infallible;
     #[inline(always)]
-    fn combine_results(_: (), _: ()) -> () {
-        ()
+    fn combine_results(_: &mut (), _: ()) {
     }
 }
 
@@ -524,8 +691,8 @@ pub struct 𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫;
 impl 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫 {
     type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞 = usize;
     type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞 = core::convert::Infallible;
-    fn combine_results(x: usize, y: usize) -> usize {
-        x + y
+    fn combine_results(x: &mut usize, y: usize) {
+        *x += y
     }
 }
 
@@ -600,7 +767,7 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 2]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[1] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u16))
+        self.emit_bytes_u16(u16::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))
     }
 }
 
@@ -609,8 +776,13 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 3]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-                                 self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[2] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u16))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..3]);
+        Self::combine_results(&mut result, self.emit_bytes_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -619,7 +791,7 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 4]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[1] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u32))
+        self.emit_bytes_u32(u32::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))
     }
 }
 
@@ -628,9 +800,13 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 5]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-            self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-            self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u32))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..5]);
+        Self::combine_results(&mut result, self.emit_bytes_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -639,9 +815,15 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 6]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-            self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[1] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u16))?,
-            self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[5] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[2] as u32))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..2]);
+        let mut result = self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[2..6]);
+        Self::combine_results(&mut result, self.emit_bytes_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -650,10 +832,17 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 7]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-            self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-            self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[2] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u16))?,),
-            self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[6] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[5] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[3] as u32))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..3]);
+        Self::combine_results(&mut result, self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[3..7]);
+        Self::combine_results(&mut result, self.emit_bytes_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -662,9 +851,7 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 8]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        self.emit_u64(
-            ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[5] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[4] as u64) << 32) |
-            ((𝖺𝗋𝗋𝖺𝗒[3] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[2] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[1] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u64))
+        self.emit_bytes_u64(u64::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))
     }
 }
 
@@ -673,11 +860,13 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 9]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[5] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[4] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[3] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[2] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u64))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..9]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -686,11 +875,15 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 10]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[1] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u16))?,
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[5] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[4] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[3] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[2] as u64))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..2]);
+        let mut result = self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[2..10]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -699,12 +892,17 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 11]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[2] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u16))?),
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[10] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[5] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[4] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[3] as u64))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..3]);
+        Self::combine_results(&mut result, self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[3..11]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -713,11 +911,15 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 12]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[1] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u32))?,
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[11] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[10] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[5] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[4] as u64))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..4]);
+        let mut result = self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[4..12]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -726,12 +928,17 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 13]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u32))?),
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[12] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[11] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[10] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[6] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[5] as u64))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..5]);
+        Self::combine_results(&mut result, self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[5..13]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -740,12 +947,19 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 14]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[1] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u16))?,
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[5] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[2] as u32))?),
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[13] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[12] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[11] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[10] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[7] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[6] as u64))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..2]);
+        let mut result = self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[2..6]);
+        Self::combine_results(&mut result, self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[6..14]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -754,13 +968,21 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 15]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[2] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u16))?),
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[6] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[5] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[3] as u32))?),
-           self.emit_u64(
-               ((𝖺𝗋𝗋𝖺𝗒[14] as u64) << 56) | ((𝖺𝗋𝗋𝖺𝗒[13] as u64) << 48) | ((𝖺𝗋𝗋𝖺𝗒[12] as u64) << 40) | ((𝖺𝗋𝗋𝖺𝗒[11] as u64) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[10] as u64) << 24) | ((𝖺𝗋𝗋𝖺𝗒[9] as u64) << 16) | ((𝖺𝗋𝗋𝖺𝗒[8] as u64) << 8) | (𝖺𝗋𝗋𝖺𝗒[7] as u64))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..3]);
+        Self::combine_results(&mut result, self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[3..7]);
+        Self::combine_results(&mut result, self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 8];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[7..15]);
+        Self::combine_results(&mut result, self.emit_bytes_u64(u64::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -769,11 +991,7 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 16]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[5] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[4] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[3] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[2] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[1] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u128))?)
+        self.emit_bytes_u128(u128::from_ne_bytes(𝖺𝗋𝗋𝖺𝗒))
     }
 }
 
@@ -788,13 +1006,13 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 17]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[16] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[5] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[4] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[3] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[2] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u128))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..17]);
+        Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -803,13 +1021,15 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 18]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[1] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u16))?,
-           self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[17] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[16] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[5] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[4] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[3] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[2] as u128))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..2]);
+        let mut result = self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[2..18]);
+        Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -818,14 +1038,17 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 19]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u16(((𝖺𝗋𝗋𝖺𝗒[2] as u16) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u16))?),
-           self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[18] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[17] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[16] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[5] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[4] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[3] as u128))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 2];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[1..3]);
+        Self::combine_results(&mut result, self.emit_u16(u16::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[3..19]);
+        Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -834,13 +1057,15 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 20]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[1] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[0] as u32))?,
-           self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[19] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[18] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[17] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[16] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[5] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[4] as u128))?))
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..4]);
+        let mut result = self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[4..20]);
+        Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
 
@@ -849,13 +1074,16 @@ impl<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮: 𝒃𝒚�
     fn emit_array(
         &mut self, 𝖺𝗋𝗋𝖺𝗒: [u8; 21]
     ) -> Result<𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, 𝓫𝔂𝓽𝓮_𝓮𝓶𝓲𝓽𝓽𝓮𝓻_𝓽𝔂𝓹𝓮::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞> {
-        Ok(Self::combine_results(Self::combine_results(
-           self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?,
-           self.emit_u32(((𝖺𝗋𝗋𝖺𝗒[4] as u32) << 24) | ((𝖺𝗋𝗋𝖺𝗒[3] as u32) << 16) | ((𝖺𝗋𝗋𝖺𝗒[2] as u32) << 8) | (𝖺𝗋𝗋𝖺𝗒[1] as u32))?),
-           self.emit_u128(
-               ((𝖺𝗋𝗋𝖺𝗒[20] as u128) << 120) | ((𝖺𝗋𝗋𝖺𝗒[19] as u128) << 112) | ((𝖺𝗋𝗋𝖺𝗒[18] as u128) << 104) | ((𝖺𝗋𝗋𝖺𝗒[17] as u128) << 96) |
-               ((𝖺𝗋𝗋𝖺𝗒[16] as u128) << 88) | ((𝖺𝗋𝗋𝖺𝗒[15] as u128) << 80) | ((𝖺𝗋𝗋𝖺𝗒[14] as u128) << 72) | ((𝖺𝗋𝗋𝖺𝗒[13] as u128) << 64) |
-               ((𝖺𝗋𝗋𝖺𝗒[12] as u128) << 56) | ((𝖺𝗋𝗋𝖺𝗒[11] as u128) << 48) | ((𝖺𝗋𝗋𝖺𝗒[10] as u128) << 40) | ((𝖺𝗋𝗋𝖺𝗒[9] as u128) << 32) |
-               ((𝖺𝗋𝗋𝖺𝗒[8] as u128) << 24) | ((𝖺𝗋𝗋𝖺𝗒[7] as u128) << 16) | ((𝖺𝗋𝗋𝖺𝗒[6] as u128) << 8) | (𝖺𝗋𝗋𝖺𝗒[5] as u128))?))
+        let mut result = self.emit_u8(𝖺𝗋𝗋𝖺𝗒[0])?;
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 4];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[0..4]);
+        Self::combine_results(&mut result, self.emit_u32(u32::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        let mut 𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒 = [0u8; 16];
+        𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒.copy_from_slice(&𝖺𝗋𝗋𝖺𝗒[4..20]);
+        Self::combine_results(&mut result, self.emit_bytes_u128(u128::from_ne_bytes(𝗌𝗎𝖻𝖺𝗋𝗋𝖺𝗒))?);
+
+        Ok(result)
     }
 }
