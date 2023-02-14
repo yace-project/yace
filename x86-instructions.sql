@@ -175,6 +175,7 @@ INSERT INTO traits_information VALUES('generic_assembler_operand','address_64bit
 INSERT INTO traits_information VALUES('generic_assembler_operand','address_64bit_memory_864bit');
 INSERT INTO traits_information VALUES('generic_assembler_operand','address_64bit_memory_far_ptr_32bit');
 INSERT INTO traits_information VALUES('generic_assembler_operand','address_64bit_memory_far_ptr_64bit');
+INSERT INTO traits_information VALUES('generic_assembler_operand','mmx_register');
 INSERT INTO traits_information VALUES('generic_assembler_operand','norex_address_32bit_memory_0bit');
 INSERT INTO traits_information VALUES('generic_assembler_operand','norex_address_32bit_memory_16bit');
 INSERT INTO traits_information VALUES('generic_assembler_operand','norex_address_32bit_memory_32bit');
@@ -479,6 +480,7 @@ INSERT INTO operand VALUES('Mw','rm','address_32bit_memory_16bit',NULL,'address_
 INSERT INTO operand VALUES('Mw','rm','address_64bit_memory_16bit','x86_64','address_size_prefix_64bit',NULL);
 INSERT INTO operand VALUES('Mw','rm','norex_address_32bit_memory_16bit','x86_64','address_size_prefix_32bit',NULL);
 INSERT INTO operand VALUES('Mw','rm','norex_address_64bit_memory_16bit','x86_64','address_size_prefix_64bit',NULL);
+INSERT INTO operand VALUES('Nq','rm','mmx_register',NULL,NULL,NULL);
 INSERT INTO operand VALUES('Ob','immediate','absolute_address_16bit_memory_8bit','legacy','address_size_prefix_16bit',NULL);
 INSERT INTO operand VALUES('Ob','immediate','absolute_address_32bit_memory_8bit',NULL,'address_size_prefix_32bit',NULL);
 INSERT INTO operand VALUES('Ob','immediate','absolute_address_64bit_memory_8bit','x86_64','address_size_prefix_64bit',NULL);
@@ -490,6 +492,20 @@ INSERT INTO operand VALUES('Ov','immediate','absolute_address_32bit_memory_64bit
 INSERT INTO operand VALUES('Ov','immediate','absolute_address_64bit_memory_16bit','x86_64','address_size_prefix_64bit','data_size_prefix_16bit');
 INSERT INTO operand VALUES('Ov','immediate','absolute_address_64bit_memory_32bit','x86_64','address_size_prefix_64bit','data_size_prefix_32bit');
 INSERT INTO operand VALUES('Ov','immediate','absolute_address_64bit_memory_64bit','x86_64','address_size_prefix_64bit','data_size_prefix_64bit');
+INSERT INTO operand VALUES('Pd','reg','mmx_register',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Pq','reg','mmx_register',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','mmx_register',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','address_16bit_memory_32bit','legacy',NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','address_32bit_memory_32bit',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','address_64bit_memory_32bit','x86_64',NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','norex_address_32bit_memory_32bit','x86_64',NULL,NULL);
+INSERT INTO operand VALUES('Qd','rm','norex_address_64bit_memory_32bit','x86_64',NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','mmx_register',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','address_16bit_memory_64bit','legacy',NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','address_32bit_memory_64bit',NULL,NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','address_64bit_memory_64bit','x86_64',NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','norex_address_32bit_memory_64bit','x86_64',NULL,NULL);
+INSERT INTO operand VALUES('Qq','rm','norex_address_64bit_memory_64bit','x86_64',NULL,NULL);
 INSERT INTO operand VALUES('R7','rm','st_register',NULL,NULL,NULL);
 INSERT INTO operand VALUES('R7','rm','x87_register',NULL,NULL,NULL);
 INSERT INTO operand VALUES('Rd','rm','accumulator_register_32bit',NULL,NULL,NULL);
@@ -550,8 +566,8 @@ INSERT INTO operand VALUES('Yz','implicit','string_instruction_destination_addre
 CREATE TABLE operands ( -- Separated from instructions table mostly to catch mistakes.
                         -- Many combinations are forbidden and it's easier to whitelist them than write aleborate CHECKs.
     short_name TEXT PRIMARY KEY,
-    operand0 TEXT CHECK (operand0 IS NULL OR operand0 IN ('%b', '&w', ':b', ':7', ':v', ':w', ':z', '=S', '=b', '=q', '=v', '=w', 'Cd', 'Cq', 'Dd', 'Dq', 'Eb', 'Mp', 'Eq', 'Ev', 'Ew', 'Gb', 'Gd', 'Gq', 'Gv', 'Gw', 'Gz', 'Ib', 'Id', 'Iq', 'Iw', 'Iz', 'M7', 'M112/224', 'M512', 'M752/864', 'M', 'Md', 'Mdq', 'Mq', 'Ms', 'Mw', 'Ob', 'Ov', 'R7', 'Rd', 'Rw', 'Rq', 'Sw', 'Td', 'Xb', 'Xv', 'Xz', 'Yb', 'Yv', 'Yz')) NULL DEFAULT NULL,
-    operand1 TEXT CHECK (operand1 IS NULL OR operand1 IN ('#b', '%b', '&w', ':7', ':b', ':v', ':z', '=v', 'Cd', 'Cq', 'Dd', 'Dq', 'Eb', 'Ed', 'Ev', 'Ew', 'Gb', 'Gv', 'Gw', 'Ib', 'Iz', 'Iv', 'M', 'M112/224', 'Md', 'Mp', 'Mq', 'Mw', 'Ob', 'Ov', 'R7', 'Rd', 'Rq', 'Rv', 'Rw', 'Sw', 'Td', 'Xb', 'Xv', 'Xz', 'Yb', 'Yz', 'Yv')) NULL DEFAULT NULL,
+    operand0 TEXT CHECK (operand0 IS NULL OR operand0 IN ('%b', '&w', ':b', ':7', ':v', ':w', ':z', '=S', '=b', '=q', '=v', '=w', 'Cd', 'Cq', 'Dd', 'Dq', 'Eb', 'Ed', 'Mp', 'Eq', 'Ev', 'Ew', 'Gb', 'Gd', 'Gq', 'Gv', 'Gw', 'Gz', 'Ib', 'Id', 'Iq', 'Iw', 'Iz', 'M7', 'M112/224', 'M512', 'M752/864', 'M', 'Md', 'Mdq', 'Mq', 'Ms', 'Mw', 'Nq', 'Ob', 'Ov', 'Pd', 'Pq', 'Qq', 'R7', 'Rd', 'Rw', 'Rq', 'Sw', 'Td', 'Xb', 'Xv', 'Xz', 'Yb', 'Yv', 'Yz')) NULL DEFAULT NULL,
+    operand1 TEXT CHECK (operand1 IS NULL OR operand1 IN ('#b', '%b', '&w', ':7', ':b', ':v', ':z', '=v', 'Cd', 'Cq', 'Dd', 'Dq', 'Eb', 'Ed', 'Ev', 'Ew', 'Eq', 'Gb', 'Gv', 'Gw', 'Ib', 'Iz', 'Iv', 'M', 'M112/224', 'Md', 'Mp', 'Mq', 'Mw', 'Ob', 'Ov', 'Pd', 'Pq', 'Qd', 'Qq', 'R7', 'Rd', 'Rq', 'Rv', 'Rw', 'Sw', 'Td', 'Xb', 'Xv', 'Xz', 'Yb', 'Yz', 'Yv')) NULL DEFAULT NULL,
     operand2 TEXT CHECK (operand2 IS NULL OR operand2 IN ('#b', ':v', 'Ib', 'Iz')) NULL DEFAULT NULL,
     operand3 TEXT CHECK (operand3 IS NULL OR operand3 IN ('#b', 'Gv')) NULL DEFAULT NULL,
     operand4 TEXT CHECK (operand4 IS NULL) NULL DEFAULT NULL
@@ -671,6 +687,14 @@ INSERT INTO operands VALUES('Yv-:v','Yv',':v',NULL,NULL,NULL);
 INSERT INTO operands VALUES('Yv-Xv','Yv','Xv',NULL,NULL,NULL);
 INSERT INTO operands VALUES('Yv-&w','Yv','&w',NULL,NULL,NULL);
 INSERT INTO operands VALUES('Yz-&w','Yz','&w',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Ed-Pd','Ed','Pd',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Eq-Pq','Eq','Pq',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Pd-Ed','Pd','Ed',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Pq-Eq','Pq','Eq',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Nq-Ib','Nq','Ib',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Pq-Qd','Pq','Qd',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Pq-Qq','Pq','Qq',NULL,NULL,NULL);
+INSERT INTO operands VALUES('Qq-Pq','Qq','Pq',NULL,NULL,NULL);
 
 CREATE TABLE instruction (
     name TEXT NOT NULL, -- Instructrion name.
@@ -713,6 +737,10 @@ CREATE TABLE instruction (
             'Eb-#b',       -- e.g. shl al, cl
             'Eb-Gb',       -- e.g. add BYTE PTR [bx], al     Note: Eb-Gb comes before Gb-Eb
             'Eb-Ib',       -- e.g. add BYTE PTR [bx], 1            this is important for this case:
+            'Ed-Pd',       -- e.g. movd DWORD PTR [bx], mm0 
+            'Eq-Pq',       -- e.g. movq QWORD PTR [bx], mm0
+            'Pd-Ed',       -- e.g. movd mm0, DWORD PTR [bx]
+            'Pq-Eq',       -- e.g. movq mm0, QWORD PTR [bx]
             'Eq',          -- e.g. pop rax                         gp_register_8bit, gp_register_8bit
             'Ev',          -- e.g. mul ax
             'Ev-#b',       -- e.g. shl ax, cl
@@ -762,8 +790,13 @@ CREATE TABLE instruction (
             'Mp',          -- e.g. call FAR PTR [bx]
             'Ms',          -- e.g. lgdt SBYTE PTR [bx]
             'Mw',          -- e.g. smsw WORD PTR [bx]
+            'Nq-Ib',       -- e.g. psllw mm0, 1
             'Ob-:b',       -- e.g. mov BYTE PTR [1234], al
             'Ov-:v',       -- e.g. mov WORD PTR [1234], ax
+            'Pq-Eq',       -- e.g. movq mm0, QWORD PTR [bx]
+            'Pq-Qd',       -- e.g. movq mm0, mm1
+            'Pq-Qq',       -- e.g. movq mm0, mm1 
+            'Qq-Pq',       -- e.g. movq mm0, mm1
             'R7',          -- e.g. fld st(1)
             'R7-:7',       -- e.g. fadd st(1),st
             'Rd',          -- e.g. smsw eax
@@ -852,6 +885,7 @@ CREATE TABLE instruction (
             'fxsr',       -- fxsave/fxrstor (Pentium II Deschutes).
             'lzcnt',      -- lzcnt turns bsr with rep prefix into lzcnt.
             'lahf',       -- only 64 bit version, 32bit version always available!
+            'mmx',        -- MMX (Pentium MMX).
             'msr',        -- rdmsr/wrmsr (Pentium+).
             'nop',        -- long nop (Pentium Pro): CPUID.01H.EAX[Bits 11:8] = 0110B or 1111B.
             'pmc',        -- performance monitoring CPUs (Pentium Pro): CPUID.0AH:EAX[7:0] ≠ 0.
@@ -1019,6 +1053,8 @@ INSERT INTO instruction VALUES('dec','=v','legacy',NULL,NULL,NULL,'primary',0x48
 
 INSERT INTO instruction VALUES('div','Eb',NULL,NULL,NULL,NULL,'primary',0xfe,6,'8086');
 INSERT INTO instruction VALUES('div','Ev',NULL,NULL,NULL,NULL,'primary',0xff,6,'8086');
+
+INSERT INTO instruction VALUES('emms',NULL,NULL,NULL,NULL,NULL,'secondary',0x77,NULL,'mmx');
 
 INSERT INTO instruction VALUES('enter','Iw-Ib',NULL,NULL,NULL,NULL,'primary',0xc8,NULL,'80186');
 INSERT INTO instruction VALUES('enterd','Iw-Ib','legacy',NULL,'data_size_prefix_32bit',NULL,'primary',0xc8,NULL,'80386');
@@ -1441,6 +1477,66 @@ INSERT INTO instruction VALUES('mov','Ob-:b',NULL,NULL,NULL,NULL,'primary',0xa2,
 INSERT INTO instruction VALUES('mov','Ov-:v',NULL,NULL,NULL,NULL,'primary',0xa3,NULL,'8086');
 INSERT INTO instruction VALUES('mov','Sw-Ev',NULL,NULL,NULL,NULL,'primary',0x8e,NULL,'8086');
 INSERT INTO instruction VALUES('mov','Td-Rd','legacy',NULL,NULL,NULL,'secondary',0x26,NULL,'80386');
+
+INSERT INTO instruction VALUES('movd','Ed-Pd',NULL,NULL,NULL,NULL,'secondary',0x7e,NULL,'mmx');
+INSERT INTO instruction VALUES('movd','Pd-Ed',NULL,NULL,NULL,NULL,'secondary',0x6e,NULL,'mmx');
+INSERT INTO instruction VALUES('movq','Eq-Pq','x86_64',NULL,'data_size_prefix_64bit',NULL,'secondary',0x7e,NULL,'mmx');
+INSERT INTO instruction VALUES('movq','Pq-Eq','x86_64',NULL,'data_size_prefix_64bit',NULL,'secondary',0x6e,NULL,'mmx');
+INSERT INTO instruction VALUES('movq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x6f,NULL,'mmx');
+INSERT INTO instruction VALUES('movq','Qq-Pq',NULL,NULL,NULL,NULL,'secondary',0x7f,NULL,'mmx');
+INSERT INTO instruction VALUES('packssdw','Pq-Qd',NULL,NULL,NULL,NULL,'secondary',0x6b,NULL,'mmx');
+INSERT INTO instruction VALUES('packsswb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x63,NULL,'mmx');
+INSERT INTO instruction VALUES('packuswb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x67,NULL,'mmx');
+INSERT INTO instruction VALUES('paddb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xfc,NULL,'mmx');
+INSERT INTO instruction VALUES('paddd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xfe,NULL,'mmx');
+INSERT INTO instruction VALUES('paddq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd4,NULL,'mmx');
+INSERT INTO instruction VALUES('paddsb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xec,NULL,'mmx');
+INSERT INTO instruction VALUES('paddsw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xed,NULL,'mmx');
+INSERT INTO instruction VALUES('paddusb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xdc,NULL,'mmx');
+INSERT INTO instruction VALUES('paddusw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xdd,NULL,'mmx');
+INSERT INTO instruction VALUES('paddw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xfd,NULL,'mmx');
+INSERT INTO instruction VALUES('pand','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xdb,NULL,'mmx');
+INSERT INTO instruction VALUES('pandn','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xdf,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpeqb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x74,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpeqd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x76,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpeqw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x75,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpgtb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x64,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpgtd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x66,NULL,'mmx');
+INSERT INTO instruction VALUES('pcmpgtq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x65,NULL,'mmx');
+INSERT INTO instruction VALUES('pmaddwd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf5,NULL,'mmx');
+INSERT INTO instruction VALUES('pmulhw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xe5,NULL,'mmx');
+INSERT INTO instruction VALUES('pmullw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd5,NULL,'mmx');
+INSERT INTO instruction VALUES('por','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xeb,NULL,'mmx');
+INSERT INTO instruction VALUES('pslld','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x72,6,'mmx');
+INSERT INTO instruction VALUES('pslld','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf2,NULL,'mmx');
+INSERT INTO instruction VALUES('psllq','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x73,6,'mmx');
+INSERT INTO instruction VALUES('psllq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf3,NULL,'mmx');
+INSERT INTO instruction VALUES('psllw','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x71,6,'mmx');
+INSERT INTO instruction VALUES('psllw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf1,NULL,'mmx');
+INSERT INTO instruction VALUES('psrad','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x72,4,'mmx');
+INSERT INTO instruction VALUES('psrad','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xe2,NULL,'mmx');
+INSERT INTO instruction VALUES('psraw','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x71,4,'mmx');
+INSERT INTO instruction VALUES('psraw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xe1,NULL,'mmx');
+INSERT INTO instruction VALUES('psrld','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x72,2,'mmx');
+INSERT INTO instruction VALUES('psrld','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd2,NULL,'mmx');
+INSERT INTO instruction VALUES('psrlq','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x73,2,'mmx');
+INSERT INTO instruction VALUES('psrlq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd3,NULL,'mmx');
+INSERT INTO instruction VALUES('psrlw','Nq-Ib',NULL,NULL,NULL,NULL,'secondary',0x71,2,'mmx');
+INSERT INTO instruction VALUES('psrlw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd1,NULL,'mmx');
+INSERT INTO instruction VALUES('psubb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf8,NULL,'mmx');
+INSERT INTO instruction VALUES('psubd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xfa,NULL,'mmx');
+INSERT INTO instruction VALUES('psubsw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xe9,NULL,'mmx');
+INSERT INTO instruction VALUES('psubusb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd8,NULL,'mmx');
+INSERT INTO instruction VALUES('psubusw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xd9,NULL,'mmx');
+INSERT INTO instruction VALUES('psubw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xf9,NULL,'mmx');
+INSERT INTO instruction VALUES('psussb','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xe8,NULL,'mmx');
+INSERT INTO instruction VALUES('punpckhbw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x68,NULL,'mmx');
+INSERT INTO instruction VALUES('punpckhdq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x6a,NULL,'mmx');
+INSERT INTO instruction VALUES('punpckhwd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x69,NULL,'mmx');
+INSERT INTO instruction VALUES('punpcklbw','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x60,NULL,'mmx');
+INSERT INTO instruction VALUES('punpckldq','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x62,NULL,'mmx');
+INSERT INTO instruction VALUES('punpcklwd','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0x61,NULL,'mmx');
+INSERT INTO instruction VALUES('pxor','Pq-Qq',NULL,NULL,NULL,NULL,'secondary',0xef,NULL,'mmx');
 
 INSERT INTO instruction VALUES('movs','Yb-Xb',NULL,NULL,NULL,NULL,'primary',0xa4,NULL,'8086');
 INSERT INTO instruction VALUES('movs','Yv-Xv',NULL,NULL,NULL,NULL,'primary',0xa5,NULL,'8086');
