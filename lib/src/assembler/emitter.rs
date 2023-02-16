@@ -686,6 +686,74 @@ impl 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐝𝐮𝐦𝐦𝐲_𝐞
 
 // Simple 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 which doesn't emit enything but just counts size of emitted code.
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+pub struct 𝐝𝐲𝐧_𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫(usize);
+
+impl 𝐝𝐲𝐧_𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫 {
+    pub fn accumulated_size(self) -> usize {
+        self.0
+    }
+}
+
+impl 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐝𝐲𝐧_𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫 {
+    #[inline(always)]
+    fn emit_i8(&mut self, _: i8) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 1;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u8(&mut self, _: u8) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 1;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_i16(&mut self, _: i16) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 2;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u16(&mut self, _: u16) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 2;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_i32(&mut self, _: i32) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 4;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u32(&mut self, _: u32) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 4;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_i64(&mut self, _: i64) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 8;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u64(&mut self, _: u64) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 8;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_i128(&mut self, _: i128) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 16;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u128(&mut self, _: u128) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 16;
+        Ok(())
+    }
+    #[inline(always)]
+    fn emit_u8_slice(&mut self, 𝗌𝗅𝗂𝖼𝖾: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+        self.0 += 𝗌𝗅𝗂𝖼𝖾.len();
+        Ok(())
+    }
+}
+
+// Simple 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 which doesn't emit enything but just counts size of emitted code.
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct 𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫;
 
 impl 𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫 {
@@ -737,10 +805,13 @@ impl 𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐜𝐨𝐝𝐞_𝐬𝐢
     fn emit_bytes_u128(&mut self, _: u128) -> Result<usize, core::convert::Infallible> {
         Ok(16)
     }
+    #[inline(always)]
+    fn emit_u8_slice(&mut self, 𝗌𝗅𝗂𝖼𝖾: &[u8]) -> Result<usize, core::convert::Infallible> {
+        Ok(𝗌𝗅𝗂𝖼𝖾.len())
+    }
     #[allow(non_upper_case_globals)]
     #[inline(always)]
-    fn emit_u8_array<const 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮: usize>(&mut self, _𝖺𝗋𝗋𝖺𝗒: [u8; 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮])
-        -> Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞, Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+    fn emit_u8_array<const 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮: usize>(&mut self, _𝖺𝗋𝗋𝖺𝗒: [u8; 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮]) -> Result<usize, core::convert::Infallible>
     where Self: 𝒊𝒏𝒕_𝒂𝒓𝒓𝒂𝒚_𝒆𝒎𝒊𝒕𝒕𝒆𝒓<u8, { 𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮 }> {
         Ok(𝓪𝓻𝓻𝓪𝔂_𝓼𝓲𝔃𝓮)
     }
