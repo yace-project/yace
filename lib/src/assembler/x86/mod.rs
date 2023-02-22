@@ -295,10 +295,10 @@
 #[path = "address.rs"]
 pub(crate) mod 𝗮𝗱𝗱𝗿𝗲𝘀𝘀;
 
-#[path = "basic_assembler.rs"]
+#[path = "basic-assembler.rs"]
 pub(crate) mod 𝗯𝗮𝘀𝗶𝗰_𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿;
 
-#[path = "emit_instruction_bytes.rs"]
+#[path = "emit-instruction-bytes.rs"]
 pub(crate) mod 𝗲𝗺𝗶𝘁_𝗶𝗻𝘀𝘁𝗿𝘂𝗰𝘁𝗶𝗼𝗻_𝗯𝘆𝘁𝗲𝘀;
 
 #[macro_use]
