@@ -58,6 +58,40 @@ fn test_emit_labels_as_bytes_i16() {
 }
 
 #[test]
+fn test_emit_labels_as_bytes_i16_be() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_be(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x1234i16, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0x12, 0x34, 0x00, 0x00, 0x12, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
+fn test_emit_labels_as_bytes_i16_le() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_le(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x1234i16, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0x34, 0x12, 0x34, 0x12, 0x00, 0x00, 0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
 fn test_emit_labels_as_bytes_i32() {
     use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
     let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
@@ -81,6 +115,40 @@ fn test_emit_labels_as_bytes_i32() {
 }
 
 #[test]
+fn test_emit_labels_as_bytes_i32_be() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_be(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x12345678i32, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0x56, 0x78, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
+fn test_emit_labels_as_bytes_i32_le() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_le(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x12345678i32, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0x78, 0x56, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12, 0x00, 0x00, 0x00, 0x00],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
 fn test_emit_labels_as_bytes_i64() {
     use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
     let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
@@ -100,6 +168,40 @@ fn test_emit_labels_as_bytes_i64() {
     #[cfg(target_endian = "little")]
     assert_eq!(
         &[0xef, 0xef, 0xcd, 0xef, 0xcd, 0xab, 0x89, 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
+fn test_emit_labels_as_bytes_i64_be() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_be(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x123456789abcdefi64, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0xcd, 0xef, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
+fn test_emit_labels_as_bytes_i64_le() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_le(label.into()).is_ok());
+    assert_eq!(machine_code.finalize(0x123456789abcdefi64, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    assert_eq!(
+        &[0xef, 0xcd, 0xef, 0xcd, 0xab, 0x89, 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01],
         &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
 }
 
@@ -137,6 +239,56 @@ fn test_emit_labels_as_bytes_isize() {
         assert_eq!(
             &[0xef, 0xef, 0xcd, 0xef, 0xcd, 0xab, 0x89, 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01],
             &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);}
+}
+
+#[test]
+fn test_emit_labels_as_bytes_isize_be() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_be(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_be(label.into()).is_ok());
+    #[cfg(target_pointer_width = "32")]
+    assert_eq!(machine_code.finalize(0x12345678isize, 10).unwrap(), 14);
+    #[cfg(target_pointer_width = "64")]
+    assert_eq!(machine_code.finalize(0x123456789abcdefisize, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    #[cfg(target_pointer_width = "32")]
+    assert_eq!(
+        &[0x56, 0x78, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+    #[cfg(target_pointer_width = "64")]
+    assert_eq!(
+        &[0xcd, 0xef, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+}
+
+#[test]
+fn test_emit_labels_as_bytes_isize_le() {
+    use super::super::𝒎𝒂𝒄𝒉𝒊𝒏𝒆_𝒄𝒐𝒅𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓;
+    let mut machine_code = 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞::new();
+    let label = machine_code.new_label();
+    assert!(machine_code.set_label(label).is_ok());
+    assert!(machine_code.emit_2byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_4byte_le(label.into()).is_ok());
+    assert!(machine_code.emit_8byte_le(label.into()).is_ok());
+    #[cfg(target_pointer_width = "32")]
+    assert_eq!(machine_code.finalize(0x12345678isize, 10).unwrap(), 14);
+    #[cfg(target_pointer_width = "64")]
+    assert_eq!(machine_code.finalize(0x123456789abcdefisize, 10).unwrap(), 14);
+    let mut raw_emitter = 𝐭𝐞𝐬𝐭_𝐞𝐦𝐢𝐭𝐭𝐞𝐫::new();
+    assert!(machine_code.emit_code(&mut raw_emitter).is_ok());
+    #[cfg(target_pointer_width = "32")]
+    assert_eq!(
+        &[0x78, 0x56, 0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12, 0x00, 0x00, 0x00, 0x00],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
+    #[cfg(target_pointer_width = "64")]
+    assert_eq!(
+        &[0xef, 0xcd, 0xef, 0xcd, 0xab, 0x89, 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01],
+        &raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍[0..raw_emitter.𝖼𝗈𝗇𝗍𝖾𝗇𝗍.len()]);
 }
 
 #[test]
