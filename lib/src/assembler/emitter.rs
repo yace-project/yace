@@ -694,6 +694,7 @@ impl 𝐝𝐲𝐧_𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫
     }
 }
 
+#[cfg(feature = "std")]
 impl 𝒅𝒚𝒏_𝒃𝒚𝒕𝒆_𝒆𝒎𝒊𝒕𝒕𝒆𝒓 for 𝐝𝐲𝐧_𝐜𝐨𝐝𝐞_𝐬𝐢𝐳𝐞_𝐜𝐨𝐮𝐧𝐭𝐞𝐫 {
     #[inline(always)]
     fn emit_i8(&mut self, _: i8) -> Result<(), Box<dyn std::error::Error>> {
