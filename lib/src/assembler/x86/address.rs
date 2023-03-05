@@ -30,6 +30,19 @@ pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚�
 #[derive(Clone, Copy, Default, Debug)]
 pub struct 𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞_64ᵇⁱᵗ {}
 
+// In ₓ86_64 mode 𝔯𝔦𝔭 base register implies no index register in address.
+// We accept it as Option<𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫>.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum 𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫 {}
+
+impl From<𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫> for u8 {
+    #[inline(always)]
+    fn from(_: 𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫) -> u8 {
+      // SAFETY: It's impossible to create 𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫 value and thus not possible to call that function.
+      unsafe { core::hint::unreachable_unchecked() }
+    }
+}
+
 // Address type is just a combination of arguments and it's mostly used to simplify interface. There are few address types:
 //   1. Absolute address — segment plus 16ᵇⁱᵗ/32ᵇⁱᵗ/64ᵇⁱᵗ offset. Only used in 𝔪𝔬𝔳 instruction and is quite similar to “normal”
 //      address in legacy modes. In 64ᵇⁱᵗ x86-64 mode it's different, though, since it's the only one with support for 64ᵇⁱᵗ offset.
@@ -1607,3 +1620,5 @@ impl<𝓪𝓻𝓫𝓲𝓽𝓻𝓪𝓻𝔂_𝓽𝔂𝓹𝓮: 𝒐𝒑𝒕𝒊𝒐
         None
     }
 }
+
+impl 𝒐𝒑𝒕𝒊𝒐𝒏_𝒇𝒓𝒐𝒎_𝒖𝒏𝒇𝒊𝒍𝒍𝒆𝒅_𝒇𝒍𝒖𝒆𝒏𝒕_𝒗𝒂𝒍𝒖𝒆 for 𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫 {}

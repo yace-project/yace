@@ -419,7 +419,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
                 let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
 
-                let arguments_sql_types = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
+                let arguments_sql_types = &𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
                     .iter()
                     .map(|argument| argument.𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.as_str())
                     .collect::<Vec<_>>();
@@ -431,7 +431,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
                 let 𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑 = instruction.𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑.as_str();
 
-                // Only instructions with two or more operands can have rex/norew operand mixup.
+                // Only instructions with two or more operands can have rex/norex operand mixup.
                 // And only instructions with one or two operands can accept 8ᵇⁱᵗ arguments.
                 // This means we need to only care about 2-operand instructions here.
                 if arguments_count == 2
@@ -447,6 +447,14 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             && arguments_sql_types[1] == "norex_register_8bit")
                 {
                     continue;
+                }
+
+                if arguments_count > 2 {
+                    for &arguments_sql_type in arguments_sql_types {
+                        if arguments_sql_type == "rex_register_8bit" || arguments_sql_type == "norex_register_8bit" {
+                            panic!("Unsupported 8bit-operand instruction");
+                        }
+                    }
                 }
 
                 let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
@@ -943,20 +951,36 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         ),
                         _ => panic!("Unsupported combination of instruction arguments and prefixes"),
                     }
-                    ["reg", "rm"] | ["reg", "rm", "implicit", "implicit"] => {
+                    ["reg", "rm"] | ["reg", "rm", "implicit"] | ["reg", "rm", "implicit", "implicit"] => {
                         let (instruction_trait, instruction_fn) = match rexw_prefix {
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
                                 if arguments_sql_types[1].starts_with("address_16bit") {
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
                                 } else if arguments_sql_types[1].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[1].starts_with("norex_address_32bit")
                                 {
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
                                 } else if arguments_sql_types[1].starts_with("address")
-                                    || arguments_sql_types[1].starts_with("norex_address")
                                 {
-                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                    if arguments_sql_types[0] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                    }
+                                } else if arguments_sql_types[1].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction")
+                                } else if arguments_sql_types[1].starts_with("eip_address") ||
+                                    arguments_sql_types[1].starts_with("rip_address")
+                                {
+                                    if arguments_sql_types[0] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rex8")
+                                    }
+                                } else if arguments_sql_types[0] == "rex_register_8bit"
+                                    || arguments_sql_types[1] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
                                 }
@@ -968,6 +992,13 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw",
+                                    )
+                                } else if arguments_sql_types[1].starts_with("eip_address")
+                                    || arguments_sql_types[1].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
@@ -993,13 +1024,29 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction_with_i")
                                 } else if arguments_sql_types[1].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[1].starts_with("norex_address_32bit")
                                 {
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction_with_i")
                                 } else if arguments_sql_types[1].starts_with("address")
-                                    || arguments_sql_types[1].starts_with("norex_address")
                                 {
-                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                    if arguments_sql_types[0] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                    }
+                                } else if arguments_sql_types[1].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction_with_i")
+                                } else if arguments_sql_types[1].starts_with("eip_address")
+                                    || arguments_sql_types[1].starts_with("rip_address")
+                                {
+                                    if arguments_sql_types[0] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_i")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rex8_and_i")
+                                    }
+                                } else if arguments_sql_types[0] == "rex_register_8bit"
+                                    || arguments_sql_types[1] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8_and_i")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
                                 }
@@ -1011,6 +1058,13 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i",
+                                    )
+                                } else if arguments_sql_types[1].starts_with("eip_address")
+                                    ||  arguments_sql_types[1].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw_and_i",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
@@ -1033,13 +1087,29 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
                                 } else if arguments_sql_types[0].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[0].starts_with("norex_address_32bit")
                                 {
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
                                 } else if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
                                 {
-                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                    if arguments_sql_types[1] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                    }
+                                } else if arguments_sql_types[0].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction")
+                                } else if arguments_sql_types[0].starts_with("eip_address") ||
+                                    arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    if arguments_sql_types[1] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rex8")
+                                    }
+                                } else if arguments_sql_types[0] == "rex_register_8bit"
+                                    || arguments_sql_types[1] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
                                 }
@@ -1051,6 +1121,13 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw",
+                                    )
+                                } else if arguments_sql_types[0].starts_with("eip_address")
+                                    || arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
@@ -1076,24 +1153,47 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction_with_i")
                                 } else if arguments_sql_types[0].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[0].starts_with("norex_address_32bit")
                                 {
                                     ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction_with_i")
                                 } else if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
                                 {
-                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                    if arguments_sql_types[1] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rex8_and_i")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                    }
+                                } else if arguments_sql_types[0].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction_with_i")
+                                } else if arguments_sql_types[0].starts_with("eip_address")
+                                    || arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    if arguments_sql_types[1] == "rex_register_8bit" {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_i")
+                                    } else {
+                                        ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rex8_and_i")
+                                    }
+                                } else if arguments_sql_types[0] == "rex_register_8bit"
+                                    || arguments_sql_types[1] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8_and_i")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
                                 }
                             }
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                                if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
+                                if arguments_sql_types[0].starts_with("address") ||
+                                    arguments_sql_types[0].starts_with("norex_address")
                                 {
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i",
+                                    )
+                                } else if arguments_sql_types[0].starts_with("eip_address")
+                                    ||  arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw_and_i",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
@@ -1115,39 +1215,42 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             .expect("Legacy instruction can not have rm operand without either reg operand or opcode extension");
                         let (instruction_trait, instruction_fn) = match rexw_prefix {
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
-                                if arguments_sql_types[0].starts_with("address_16bit")
-                                    || arguments_sql_types[0].starts_with("norex_address_16bit")
-                                {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_8086_memory_instruction",
-                                    )
-                                } else if arguments_sql_types[0].starts_with("address_32bit")
+                                if arguments_sql_types[rm_argument].starts_with("address_16bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction")
+                                } else if arguments_sql_types[rm_argument].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[0].starts_with("norex_address_32bit")
                                 {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_80386_memory_instruction",
-                                    )
-                                } else if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction")
+                                } else if arguments_sql_types[rm_argument].starts_with("address")
                                 {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_ₓ86_64_memory_instruction",
-                                    )
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction")
+                                } else if arguments_sql_types[rm_argument].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction")
+                                } else if arguments_sql_types[rm_argument].starts_with("eip_address") ||
+                                    arguments_sql_types[rm_argument].starts_with("rip_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction")
+                                } else if arguments_sql_types[rm_argument] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction")
                                 }
                             }
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                                if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
+                                if arguments_sql_types[rm_argument].starts_with("address")
+                                    || arguments_sql_types[rm_argument].starts_with("norex_address")
                                 {
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw",
+                                    )
+                                } else if arguments_sql_types[rm_argument].starts_with("eip_address")
+                                    || arguments_sql_types[rm_argument].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw")
@@ -1163,39 +1266,42 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             .expect("Legacy instruction can not have rm operand without either reg operand or opcode extension");
                         let (instruction_trait, instruction_fn) = match rexw_prefix {
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴 => {
-                                if arguments_sql_types[0].starts_with("address_16bit")
-                                    || arguments_sql_types[0].starts_with("norex_address_16bit")
-                                {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_8086_memory_instruction_with_i",
-                                    )
+                                if arguments_sql_types[0].starts_with("address_16bit") {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_8086_memory_instruction_with_i")
                                 } else if arguments_sql_types[0].starts_with("address_32bit")
                                     && assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔵86_64
-                                    || arguments_sql_types[0].starts_with("norex_address_32bit")
                                 {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_80386_memory_instruction_with_i",
-                                    )
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_80386_memory_instruction_with_i")
                                 } else if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
                                 {
-                                    (
-                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
-                                        "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i",
-                                    )
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_i")
+                                } else if arguments_sql_types[0].starts_with("norex_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_norex_memory_instruction_with_i")
+                                } else if arguments_sql_types[0].starts_with("eip_address")
+                                    || arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    ("𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_i")
+                                } else if arguments_sql_types[0] == "rex_register_8bit" {
+                                    ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rex8_and_i")
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_i")
                                 }
                             }
                             𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴 => {
-                                if arguments_sql_types[0].starts_with("address")
-                                    || arguments_sql_types[0].starts_with("norex_address")
+                                if arguments_sql_types[0].starts_with("address") ||
+                                    arguments_sql_types[0].starts_with("norex_address")
                                 {
                                     (
                                         "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
                                         "emit_legacy_reg_address_ₓ86_64_memory_instruction_with_rexw_and_i",
+                                    )
+                                } else if arguments_sql_types[0].starts_with("eip_address")
+                                    ||  arguments_sql_types[0].starts_with("rip_address")
+                                {
+                                    (
+                                        "𝒆𝒎𝒊𝒕_𝒎𝒆𝒎𝒐𝒓𝒚_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏",
+                                        "emit_legacy_reg_address_ₓ86_64_ₓip_instruction_with_rexw_and_i",
                                     )
                                 } else {
                                     ("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏", "emit_legacy_reg_rm_instruction_with_rexw_and_i")
@@ -1925,6 +2031,108 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
         "data_register_16bit" => "Self::𝐝𝐚𝐭𝐚_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
         "debug_register" => "Self::𝐝𝐞𝐛𝐮𝐠_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫",
         "destination_string_operand" => "𝒅𝒆𝒔𝒕𝒊𝒏𝒂𝒕𝒊𝒐𝒏_𝒔𝒕𝒓𝒊𝒏𝒈_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
+        "eip_address_32bit_memory_0bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "0>"),
+        "eip_address_32bit_memory_112bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "14>"),
+        "eip_address_32bit_memory_128bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "16>"),
+        "eip_address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "2>"),
+        "eip_address_32bit_memory_224bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "28>"),
+        "eip_address_32bit_memory_256bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "32>"),
+        "eip_address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "4>"),
+        "eip_address_32bit_memory_48bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "6>"),
+        "eip_address_32bit_memory_512bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "64>"),
+        "eip_address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "8>"),
+        "eip_address_32bit_memory_752bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "94>"),
+        "eip_address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "1>"),
+        "eip_address_32bit_memory_80bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "10>"),
+        "eip_address_32bit_memory_864bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "108>"),
+        "eip_address_32bit_memory_far_ptr_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-4isize as usize}>"),
+        "eip_address_32bit_memory_far_ptr_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-6isize as usize}>"),
+        "eip_address_32bit_memory_far_ptr_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-10isize as usize}>"),
         "generic_assembler_operand" => "𝒈𝒆𝒏𝒆𝒓𝒊𝒄_𝒂𝒔𝒔𝒆𝒎𝒃𝒍𝒆𝒓_𝒐𝒑𝒆𝒓𝒂𝒏𝒅",
         "gp_register_16bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
         "gp_register_32bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ",
@@ -2154,6 +2362,109 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱: Lazy<HashMap<&'static str, &'stat
                                                                            "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
                                                                            "i32,",
                                                                            "{-10isize as usize}>"),
+        "rip_address_64bit_memory_0bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "0>"),
+        "rip_address_64bit_memory_112bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "14>"),
+        "rip_address_64bit_memory_128bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "16>"),
+        "rip_address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "2>"),
+        "rip_address_64bit_memory_224bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "28>"),
+        "rip_address_64bit_memory_256bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "32>"),
+        "rip_address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "4>"),
+        "rip_address_64bit_memory_48bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "6>"),
+        "rip_address_64bit_memory_512bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "64>"),
+        "rip_address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "8>"),
+        "rip_address_64bit_memory_752bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "94>"),
+        "rip_address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "1>"),
+        "rip_address_64bit_memory_80bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "10>"),
+        "rip_address_64bit_memory_864bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "108>"),
+        "rip_address_64bit_memory_far_ptr_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-4isize as usize}>"),
+        "rip_address_64bit_memory_far_ptr_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-6isize as usize}>"),
+        "rip_address_64bit_memory_far_ptr_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<Self::𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "Self::𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-10isize as usize}>"),
+
         "norex_register_16bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗₙₒᵣₑₓ",
         "norex_register_32bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗₙₒᵣₑₓ",
         "norex_register_64bit" => "Self::𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ",
@@ -2779,6 +3090,108 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64: Lazy<HashMap<&'static st
         "counter_register_8bit" => "𝐜𝐨𝐮𝐧𝐭𝐞𝐫_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ",
         "data_register_16bit" => "𝐝𝐚𝐭𝐚_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ",
         "debug_register" => "𝐝𝐞𝐛𝐮𝐠_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫",
+        "eip_address_32bit_memory_0bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "0>"),
+        "eip_address_32bit_memory_112bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "14>"),
+        "eip_address_32bit_memory_128bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "16>"),
+        "eip_address_32bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "2>"),
+        "eip_address_32bit_memory_224bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "28>"),
+        "eip_address_32bit_memory_256bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "32>"),
+        "eip_address_32bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "4>"),
+        "eip_address_32bit_memory_48bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "6>"),
+        "eip_address_32bit_memory_512bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "64>"),
+        "eip_address_32bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "8>"),
+        "eip_address_32bit_memory_752bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "94>"),
+        "eip_address_32bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "1>"),
+        "eip_address_32bit_memory_80bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "10>"),
+        "eip_address_32bit_memory_864bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "108>"),
+        "eip_address_32bit_memory_far_ptr_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-4isize as usize}>"),
+        "eip_address_32bit_memory_far_ptr_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-6isize as usize}>"),
+        "eip_address_32bit_memory_far_ptr_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐞𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-10isize as usize}>"),
         "gp_register_16bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_16ᵇⁱᵗ_ₓ86_64",
         "gp_register_32bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_32ᵇⁱᵗ_ₓ86_64",
         "gp_register_64bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗ",
@@ -2997,6 +3410,108 @@ static 𝔰𝔮𝔩_𝔱𝔬_𝔯𝔲𝔰𝔱_ₓ86_64: Lazy<HashMap<&'static st
         "norex_register_64bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_64ᵇⁱᵗₙₒᵣₑₓ",
         "norex_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗ_8086",
         "rex_register_8bit" => "𝐠𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_8ᵇⁱᵗᵣₑₓ_ₓ86_64",
+        "rip_address_64bit_memory_0bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "0>"),
+        "rip_address_64bit_memory_112bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "14>"),
+        "rip_address_64bit_memory_128bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "16>"),
+        "rip_address_64bit_memory_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "2>"),
+        "rip_address_64bit_memory_224bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "28>"),
+        "rip_address_64bit_memory_256bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "32>"),
+        "rip_address_64bit_memory_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "4>"),
+        "rip_address_64bit_memory_48bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "6>"),
+        "rip_address_64bit_memory_512bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "64>"),
+        "rip_address_64bit_memory_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "8>"),
+        "rip_address_64bit_memory_752bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "94>"),
+        "rip_address_64bit_memory_8bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                "i32,",
+                                                                "1>"),
+        "rip_address_64bit_memory_80bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                 "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                 "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                 "i32,",
+                                                                 "10>"),
+        "rip_address_64bit_memory_864bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                  "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                  "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                  "i32,",
+                                                                  "108>"),
+        "rip_address_64bit_memory_far_ptr_16bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-4isize as usize}>"),
+        "rip_address_64bit_memory_far_ptr_32bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-6isize as usize}>"),
+        "rip_address_64bit_memory_far_ptr_64bit" => concat! ("𝒂𝒅𝒅𝒓𝒆𝒔𝒔_ₓ86<𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64,",
+                                                                         "𝐫𝐢𝐩_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐧𝐨_𝐢𝐧𝐝𝐞𝐱_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫,",
+                                                                         "𝐢𝐧𝐝𝐞𝐱_𝐬𝐜𝐚𝐥𝐞,",
+                                                                         "i32,",
+                                                                         "{-10isize as usize}>"),
         "segment_register" => "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64",
         "segment_register_no_cs" => "𝐬𝐞𝐠𝐦𝐞𝐧𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫_ₓ86_64",
         "st_register" => "𝐬𝐭_𝐫𝐞𝐠𝐢𝐬𝐭𝐞𝐫",
