@@ -704,7 +704,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let instruction_type = if x87_instruction_wait_prefix {
                     format!(
                         "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},{},{}>",
-                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",  // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",              // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
                         "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x9b>", // 𝔀𝓪𝓲𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
                         𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,         // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
                         𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,      // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
@@ -717,10 +717,10 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 } else {
                     format!(
                         "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},{},{}>",
-                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱", // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",             // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
                         𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,        // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
                         𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,     // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
-                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱", // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                        "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",             // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
                         𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,             // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
                         x0f_prefix,              // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
                         x3x_prefix,              // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
@@ -754,6 +754,27 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     },
                     ["immediate"] | ["immediate", "implicit"] | ["implicit", "immediate"] => {
                         let imm_argument: usize = (arguments_sql_operands[0] != "immediate").into();
+                        // 𝔞𝔡𝔡/𝔬𝔯/𝔞𝔡𝔠/𝔰𝔟𝔟/𝔞𝔫𝔡/𝔰𝔲𝔟/𝔵𝔬𝔯/𝔠𝔪𝔭 can be shortened via the use of version with 8bit immediate.
+                        let (extra_instruction_type, extra_opcode) =
+                        if imm_argument == 1 && 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌[0].𝗌𝗊𝗅_𝗍𝗒𝗉𝖾.starts_with("accumulator_register_") && instruction.𝗈𝗉𝖼𝗈𝖽𝖾 & 0xc7 == 0x05 {
+                            (
+                                Some(format!(
+                                    "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},{},{}>",
+                                    "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",              // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,         // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,      // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",              // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,              // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    x0f_prefix,               // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    x3x_prefix,               // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                                    "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x83>", // 𝓸𝓹𝓬𝓸𝓭𝓮
+                                    immediate_opcode          // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                                )),
+                                instruction.𝗈𝗉𝖼𝗈𝖽𝖾 >> 3,
+                            )
+                        } else {
+                            (None, 0)
+                        };
                         match (arguments_sql_types[imm_argument], rexw_prefix) {
                             ("absolute_address_16bit_memory_8bit" |
                              "absolute_address_16bit_memory_16bit" |
@@ -785,18 +806,39 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                 format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8])"),
                                 format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>"),
                             ),
-                            ("imm16", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
-                                format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8])"),
-                                format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>"),
-                            ),
-                            ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => (
-                                format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
-                                format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>"),
-                            ),
-                            ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴) => (
-                                format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
-                                format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>"),
-                            ),
+                            ("imm16", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => if let Some(extra_instruction_type) = extra_instruction_type {
+                                (
+                                    format!("let parameter{imm_argument}_i8 = parameter{imm_argument} as i8;if parameter{imm_argument}_i8 as i16==parameter{imm_argument}{{return <Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>>::emit_legacy_reg_rm_instruction_with_i8(self,{extra_opcode},0,parameter{imm_argument}_i8)}};<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>+𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>"),
+                                )
+                            } else {
+                                (
+                                    format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},2>"),
+                                )
+                            },
+                            ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔫𝔬𝔯𝔢𝔵𝔴) => if let Some(extra_instruction_type) = extra_instruction_type {
+                                (
+                                    format!("let parameter{imm_argument}_i8 = parameter{imm_argument} as i8;if parameter{imm_argument}_i8 as i32==parameter{imm_argument}{{return <Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>>::emit_legacy_reg_rm_instruction_with_i8(self,{extra_opcode},0,parameter{imm_argument}_i8)}};<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>+𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>"),
+                                )
+                            } else {
+                                (
+                                    format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_and_opcodes(self,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>"),
+                                )
+                            },
+                            ("imm32", 𝐫𝐞𝐱𝐰_𝐭𝐲𝐩𝐞::𝔯𝔢𝔵𝔴) => if let Some(extra_instruction_type) = extra_instruction_type {
+                                (
+                                    format!("let parameter{imm_argument}_i8 = parameter{imm_argument} as i8;if parameter{imm_argument}_i8 as i32==parameter{imm_argument}{{return <Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>>::emit_legacy_reg_rm_instruction_with_rexw_and_i8(self,{extra_opcode},0,parameter{imm_argument}_i8)}};<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>+𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>"),
+                                )
+                            } else {
+                                (
+                                    format!("<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>>::emit_prefixes_rex_and_opcodes(self,0b0100_1000,[parameter{imm_argument} as u8,(parameter{imm_argument}>>8)as u8,(parameter{imm_argument}>>16)as u8,(parameter{imm_argument}>>24)as u8])"),
+                                    format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},4>"),
+                                )
+                            },
                             _ => panic!("Unsupported combination of instruction arguments and prefixes"),
                         }
                     }
@@ -839,7 +881,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             let 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾;
                             let instruction_no_fs_gs = instruction_type.replace("𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x0f>", "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱");
                             let opcode_no_fs_gs = 𝗈𝗉𝖼𝗈𝖽𝖾 - 0x60;
-                            (   format!("let 𝗋𝖾𝗀:u8=parameter0.into();if 𝗋𝖾𝗀>=0x40{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}^(𝗋𝖾𝗀<<3)])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_no_fs_gs},1>>::emit_prefixes_and_opcodes(self,[0x{opcode_no_fs_gs:02x}^𝗋𝖾𝗀])}}"),
+                            (
+                                format!("let 𝗋𝖾𝗀:u8=parameter0.into();if 𝗋𝖾𝗀>=0x40{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>>::emit_prefixes_and_opcodes(self,[0x{𝗈𝗉𝖼𝗈𝖽𝖾:02x}^(𝗋𝖾𝗀<<3)])}}else{{<Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_no_fs_gs},1>>::emit_prefixes_and_opcodes(self,[0x{opcode_no_fs_gs:02x}^𝗋𝖾𝗀])}}"),
                                 format!("𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_type},1>+𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{instruction_no_fs_gs},1>"),
                             )
                         },
@@ -1011,9 +1054,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             _ => "",
                         };
                         (
-                            format!(
-                                "{adjust_reg}<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter0,parameter1)"
-                            ),
+                            format!("{adjust_reg}<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter0,parameter1)"),
                             format!("{instruction_trait}<{instruction_type}>"),
                         )
                     }
@@ -1073,9 +1114,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         };
                         let immediate_size = &arguments_sql_types[2][3..];
                         (
-                            format!(
-                                "<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,parameter0,parameter1,parameter2)"
-                            ),
+                            format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,parameter0,parameter1,parameter2)"),
                             format!("{instruction_trait}<{instruction_type}>"),
                         )
                     }
@@ -1140,9 +1179,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             _ => "".to_owned(),
                         };
                         (
-                            format!(
-                                "{adjust_reg}<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter{reg_argument},parameter0)"
-                            ),
+                            format!("{adjust_reg}<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,parameter{reg_argument},parameter0)"),
                             format!("{instruction_trait}<{instruction_type}>"),
                         )
                     }
@@ -1202,9 +1239,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         };
                         let immediate_size = &arguments_sql_types[2][3..];
                         (
-                            format!(
-                                "<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,parameter1,parameter0,parameter2)"
-                            ),
+                            format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,parameter1,parameter0,parameter2)"),
                             format!("{instruction_trait}<{instruction_type}>"),
                         )
                     }
@@ -1257,8 +1292,10 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                 }
                             }
                         };
-                        (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter{rm_argument})"),
-                            format!("{instruction_trait}<{instruction_type}>"))
+                        (
+                            format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter{rm_argument})"),
+                            format!("{instruction_trait}<{instruction_type}>"),
+                        )
                     }
                     ["rm", "immediate"] => {
                         let 𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 = instruction
@@ -1309,8 +1346,83 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             }
                         };
                         let immediate_size = &arguments_sql_types[1][3..];
-                        (   format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
-                            format!("{instruction_trait}<{instruction_type}>"))
+                        // 𝔞𝔡𝔡/𝔬𝔯/𝔞𝔡𝔠/𝔰𝔟𝔟/𝔞𝔫𝔡/𝔰𝔲𝔟/𝔵𝔬𝔯/𝔠𝔪𝔭 can be shortened via the use of version with accumulator.
+                        if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗉 == "primary" && instruction_trait == "𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏" && instruction.𝗈𝗉𝖼𝗈𝖽𝖾 == 0x80 {
+                            let extra_instruction_type = format!(
+                                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",                  // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,             // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,          // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",                  // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,                  // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x0f_prefix,                   // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x3x_prefix,                   // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 << 3 | 0x04, // 𝓸𝓹𝓬𝓸𝓭𝓮
+                                immediate_opcode              // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                            );
+                            (
+                                format!("let parameter0_u8:u8=parameter0.into();if parameter0_u8==0{{return <Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{extra_instruction_type},1>>::emit_prefixes_and_opcodes(self,[parameter1 as u8]);}}<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                                format!("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{instruction_type}>"),
+                            )
+                        // 𝔞𝔡𝔡/𝔬𝔯/𝔞𝔡𝔠/𝔰𝔟𝔟/𝔞𝔫𝔡/𝔰𝔲𝔟/𝔵𝔬𝔯/𝔠𝔪𝔭 can be shortened via the use of version with accumulator or short immediate.
+                        } else if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗉 == "primary" && instruction_trait == "𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏" && instruction.𝗈𝗉𝖼𝗈𝖽𝖾 == 0x82 {
+                            let extra_instruction_type_i8 = format!(
+                                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},{},{}>",
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",              // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,         // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,      // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",              // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,              // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x0f_prefix,               // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x3x_prefix,               // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                                "𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x83>", // 𝓸𝓹𝓬𝓸𝓭𝓮
+                                immediate_opcode          // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                            );
+                            let extra_instruction_type_accumulator = format!(
+                                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",                  // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,             // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,          // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",                  // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,                  // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x0f_prefix,                   // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x3x_prefix,                   // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇 << 3 | 0x05, // 𝓸𝓹𝓬𝓸𝓭𝓮
+                                immediate_opcode              // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                            );
+                            let emit_immediate = match "immediate_size" {
+                                "16" => "[parameter1 as u8,(parameter1>>8)as u8]",
+                                "32" => "[parameter1 as u8,(parameter1>>8)as u8,(parameter1>>16)as u8,(parameter1>>24)as u8]",
+                                _ => panic!("Unsupported immediate size"),
+                            };
+                            (
+                                format!("let parameter1_i8 = parameter1 as i8;if parameteri_i8 as i{immediate_size}==parameter1{{return <Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type_i8}>>::{instruction_fn}8(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1_i8);}}let parameter0_u8:u8=parameter0.into();if parameter0_u8==0{{return <Self as 𝒆𝒎𝒊𝒕_𝒑𝒓𝒆𝒇𝒊𝒙𝒆𝒔_𝒂𝒏𝒅_𝒐𝒑𝒄𝒐𝒅𝒆<{extra_instruction_type_accumulator},{immediate_size}>>::emit_prefixes_and_opcodes(self,{emit_immediate});}}<Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                                format!("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{instruction_type}>+𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type_i8}>"),
+                            )
+                        // 𝔯𝔬𝔩/𝔯𝔬𝔯/𝔯𝔠𝔩/𝔯𝔠𝔯/𝔰𝔞𝔩/𝔰𝔥𝔯/𝔰𝔞𝔯 have shorter version if shift by one is needed.
+                        } else if 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗉 == "primary" && instruction_trait == "𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏" && instruction.𝗈𝗉𝖼𝗈𝖽𝖾 & 0xfe == 0xc0 {
+                            let extra_instruction_type = format!(
+                                "𝐥𝐞𝐠𝐚𝐜𝐲_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧<{},{},{},{},{},{},{},𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐛𝐲𝐭𝐞<0x{:02x}>,{}>",
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",               // 𝓼𝓮𝓰𝓶𝓮𝓷𝓽_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖽𝖺𝗍𝖺_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,          // 𝓭𝓪𝓽𝓪_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝖺𝖽𝖽𝗋𝖾𝗌𝗌_𝗌𝗂𝗓𝖾_𝗉𝗋𝖾𝖿𝗂𝗑,       // 𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓼𝓲𝔃𝓮_𝓹𝓻𝓮𝓯𝓲𝔁
+                                "𝐧𝐨_𝐩𝐫𝐞𝐟𝐢𝐱",               // 𝓵𝓸𝓬𝓴_𝓹𝓻𝓮𝓯𝓲𝔁
+                                𝗋𝖾𝗉ₓ_𝗉𝗋𝖾𝖿𝗂𝗑,               // 𝓻𝓮𝓹ₓ_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x0f_prefix,                // 𝔁𝟬𝗙_𝓹𝓻𝓮𝓯𝓲𝔁
+                                x3x_prefix,                // 𝔁𝟯𝘅_𝓹𝓻𝓮𝓯𝓲𝔁
+                                instruction.𝗈𝗉𝖼𝗈𝖽𝖾 | 0x10, // 𝓸𝓹𝓬𝓸𝓭𝓮
+                                immediate_opcode           // 𝓲𝓶𝓶𝓮𝓭𝓲𝓪𝓽𝓮_𝓸𝓹𝓬𝓸𝓭𝓮
+                            );
+                            (
+                                format!("if parameter1==1{{return <Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>>::emit_legacy_reg_rm_instruction(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0);}}<Self as 𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                                format!("𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{instruction_type}>+𝒆𝒎𝒊𝒕_𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏<{extra_instruction_type}>"),
+                            )
+                        } else {
+                            (
+                                format!("<Self as {instruction_trait}<{instruction_type}>>::{instruction_fn}{immediate_size}(self,{𝗈𝗉𝖼𝗈𝖽𝖾_𝖾𝗑𝗍𝖾𝗇𝗌𝗂𝗈𝗇},parameter0,parameter1)"),
+                                format!("{instruction_trait}<{instruction_type}>"),
+                            )
+                        }
                     }
                     _ => panic!("Unsupported combination of instruction arguments /{arguments_sql_operands:?}"),
                 };
@@ -1526,6 +1638,7 @@ where
         let mut combine_prefixes = Vec::new();
         let mut assembler_kind_check = Vec::new();
         let mut type_list = Vec::new();
+        let mut priority_list = Vec::new();
         let operand_count_check = if operands_count == 0 {
             "AND operands.operand0 IS NULL".to_owned()
         } else if operands_count == 5 {
@@ -1538,8 +1651,12 @@ where
             )
         };
         for i in 0..operands_count {
-            operand_requests.push(format!(
-                "operand{i}.parameter_type AS type{i},trait{i}.name AS trait{i},operand{i}.operand_source AS operand{i},"
+            operand_requests.push(formatdoc!(
+                "
+                operand{i}.parameter_type AS type{i}, 
+                trait{i}.name AS trait{i},
+                operand{i}.operand_source AS operand{i},
+                priority{i}.priority AS priority{i},"
             ));
             data_prefixes_selection.push(format!(",IFNULL(operand{i}.data_size_prefix, '')"));
             address_prefixes_selection.push(format!(",IFNULL(operand{i}.address_size_prefix, '')"));
@@ -1568,7 +1685,9 @@ where
                     HAVING priority = MAX(priority)
                     ORDER BY name{i}
                 ){suffix}"});
-            operand_information.push(format!(" LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name"));
+            operand_information.push(formatdoc! {"
+                LEFT JOIN operand AS operand{i} ON operand{i} = operand{i}.name
+                LEFT JOIN operands_priority AS priority{i} ON operand{i}.parameter_type = priority{i}.name "});
             trait_information.push(formatdoc! {"
                 ,traits_information AS trait{i} ON trait{i} = trait{i}.name
                 AND operand{i}.parameter_type = trait{i}.allowed_operand"});
@@ -1581,10 +1700,10 @@ where
                          operand{i}.address_size_prefix IS NULL OR
                          operand{j}.address_size_prefix IS NULL)"});
             }
-            assembler_kind_check.push(format!(
-                "AND (operand{i}.assembler_kind IS NULL OR operand{i}.assembler_kind = $1)"
-            ));
-            type_list.push(format!(", type{i}"));
+            assembler_kind_check.push(formatdoc! {"
+                AND (operand{i}.assembler_kind IS NULL OR operand{i}.assembler_kind = $1)"});
+            type_list.push(format!(",type{i}"));
+            priority_list.push(format!(",priority{i}"));
         }
         let operand_requests = operand_requests.concat();
         let data_prefixes_selection = data_prefixes_selection.concat();
@@ -1595,6 +1714,7 @@ where
         let combine_prefixes = combine_prefixes.concat();
         let assembler_kind_check = assembler_kind_check.concat();
         let type_list = type_list.concat();
+        let priority_list = priority_list.concat();
         *query = formatdoc! {"
             SELECT name0 AS name,
                    {operand_requests}
@@ -1613,9 +1733,9 @@ where
                   {combine_prefixes}
                   {assembler_kind_check}
                   {operand_count_check}
-            GROUP BY instruction.name {type_list}
+            GROUP BY instruction.name{priority_list}{type_list}
             HAVING operands = MIN(operands)
-            ORDER BY instruction.name {type_list};"};
+            ORDER BY instruction.name{priority_list}{type_list};"};
     }
     sqlx::query(query.as_str())
         .bind(assembler_kind.as_str())
