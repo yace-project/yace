@@ -481,9 +481,8 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
     let mut query = String::new();
     for assembler_kind in [𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔢, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳32𝔦, 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦]
     {
-        for arguments_count in 0..=5 {
-            let mut instructions_stream = get_insructions_info(&mut connection, arguments_count, assembler_kind, &mut query);
-            while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
+        let mut process_instruction =
+            |instruction: 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐢𝐧𝐟𝐨_𝐭𝐲𝐩𝐞| {
                 let 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌 = &instruction.𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌;
 
                 let arguments_sql_types = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌
@@ -499,20 +498,32 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 let 𝖿𝗇_𝗇𝖺𝗆𝖾 = instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.replace('.', "_");
                 let 𝖿𝗇_𝗇𝖺𝗆𝖾 = 𝖿𝗇_𝗇𝖺𝗆𝖾.as_str();
 
-                let rv64_long_shift = arguments_count == 3 && arguments_sql_types[2] == "<:imm";
+                let rv64_long_shift = 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.len() == 3 && arguments_sql_types[2] == "<:imm";
 
                 let 𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
                 let 𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾 = instruction.𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.as_str();
                 let 𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾 = instruction.𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾.as_str();
 
                 if instruction_trait.insert(𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                    let instructions_trait = format!("pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
-                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
+                    let instructions_trait = formatdoc! {"
+                        pub trait {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)
+                                ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                        }}"};
+                    let instruction_trait = formatdoc! {"
+                        pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)
+                                ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                        }}"};
                     riscv_assembler_instructions.push(instructions_trait);
                     riscv_assembler_instructions.push(instruction_trait);
                 }
 
-                if instruction_traits.insert((𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned(), arguments_count)) {
+                if instruction_traits.insert((𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned(), 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.len())) {
                     let mut parameter_types_list = Vec::new();
                     let mut argument_types = Vec::new();
                     let mut parameters_type_list = Vec::new();
@@ -520,26 +531,60 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     let mut parameters_convert_into = Vec::new();
                     for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
                         let argument_trait = argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍;
-                        parameter_types_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮:{argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,"));
-                        argument_types.push(format!("<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭"));
-                        parameters_type_list.push(format!("𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮"));
-                        parameters_list.push(format!("parameter{index}"));
-                        parameters_convert_into.push(format!(
-                            "core::convert::Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::into(parameter{index})"
-                        ));
+                        parameter_types_list.push(formatdoc! {"𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮:{argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>,"});
+                        argument_types.push(formatdoc! {"<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭"});
+                        parameters_type_list.push(formatdoc! {"𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮"});
+                        parameters_list.push(formatdoc! {"parameter{index}"});
+                        parameters_convert_into.push(formatdoc! {"
+                            core::convert::Into::<<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻{index}_𝓽𝔂𝓹𝓮 as {argument_trait}<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮>>::𝐭𝐚𝐫𝐠𝐞𝐭>::
+                                into(parameter{index})"});
                     }
                     let parameter_types_list = parameter_types_list.concat();
                     let argument_types = argument_types.join(",");
                     let parameters_type_list = parameters_type_list.join(",");
                     let parameters_list = parameters_list.join(",");
                     let parameters_convert_into = parameters_convert_into.join(",");
-                    let impl_instruction = format!("impl<{parameter_types_list}𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<({parameters_type_list}{arguments_comma})>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{#[allow(clippy::type_complexity)]type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;#[allow(clippy::type_complexity)]type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,({parameters_list}{arguments_comma}):({parameters_type_list}{arguments_comma}))->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(({parameters_convert_into}{arguments_comma}))}}}}");
+                    let impl_instruction = formatdoc! {"
+                        impl<{parameter_types_list}𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>
+                            {𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<({parameters_type_list}{arguments_comma})>
+                        for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{
+                            #[allow(clippy::type_complexity)]
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::
+                                𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            #[allow(clippy::type_complexity)]
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<({argument_types}{arguments_comma})>>::
+                                𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            #[inline(always)]
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(&mut self,
+                                ({parameters_list}{arguments_comma}):({parameters_type_list}{arguments_comma}))
+                                ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                            {{
+                                self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(({parameters_convert_into}{arguments_comma}))
+                            }}
+                        }}"};
                     riscv_assembler_instructions.push(impl_instruction);
                 }
 
                 if kind_specific_traits[assembler_kind as usize].insert(instruction.𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()) {
-                    let instruction_trait = format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;}}");
-                    let instruction_impl = format!("impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮> for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_with(arguments)}}}}");
+                    let instruction_trait = formatdoc! {"
+                        pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,parameters:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)
+                                ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>;
+                        }}"};
+                    let instruction_impl = formatdoc! {"
+                        impl Æ 𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>
+                        for æ where Self:{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<Self as {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            #[inline(always)]
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_implementation(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)
+                                ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                            {{
+                                self.{𝖿𝗇_𝗇𝖺𝗆𝖾}_with(arguments)
+                            }}
+                        }}"};
                     assembler_instructions[assembler_kind as usize].push(instruction_trait);
                     𝖿𝗈𝗋𝗐𝖺𝗋𝖽_𝗂𝗆𝗉𝗅𝖾𝗆𝖾𝗇𝗍_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize].push(instruction_impl);
                 }
@@ -551,16 +596,16 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 for (index, argument) in 𝖺𝗋𝗀𝗎𝗆𝖾𝗇𝗍𝗌.iter().enumerate() {
                     arguments_type.push(argument.𝗋𝗎𝗌𝗍_𝗍𝗒𝗉𝖾);
                     arguments_trait_type.push(argument.𝗋𝗎𝗌𝗍_𝗍𝗋𝖺𝗂𝗍_𝗍𝗒𝗉𝖾);
-                    parameters_list.push(format!("parameter{index}"));
-                    enums_vector_list.push(format!(
-                        "𝐨𝐩𝐞𝐫𝐚𝐧𝐝::<Self::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮>::{}(parameter{})",
+                    parameters_list.push(formatdoc! {"parameter{index}"});
+                    enums_vector_list.push(formatdoc! {"
+                        𝐨𝐩𝐞𝐫𝐚𝐧𝐝::<Self::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮>::{}(parameter{})",
                         argument.𝗋𝗎𝗌𝗍_𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍, index
-                    ));
+                    });
                 }
-                let arguments_type = format!("({}{arguments_comma})", arguments_type.join(","));
-                let arguments_trait_type = format!("({}{arguments_comma})", arguments_trait_type.join(","));
-                let parameters_list = format!("({}{arguments_comma})", parameters_list.join(","));
-                let enums_vector_list = format!("[{}].as_slice()", enums_vector_list.join(","));
+                let arguments_type = formatdoc! {"({}{arguments_comma})", arguments_type.join(",")};
+                let arguments_trait_type = formatdoc! {"({}{arguments_comma})", arguments_trait_type.join(",")};
+                let parameters_list = formatdoc! {"({}{arguments_comma})", parameters_list.join(",")};
+                let enums_vector_list = formatdoc! {"[{}].as_slice()", enums_vector_list.join(",")};
 
                 let 𝗈𝗉𝖼𝗈𝖽𝖾 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾;
                 let 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 = instruction.𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄;
@@ -570,24 +615,81 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     .map(|argument| argument.𝗌𝗊𝗅_𝗌𝗈𝗎𝗋𝖼𝖾.as_str())
                     .collect::<Vec<_>>();
                 let instruction_emit = match arguments_sql_sources[..] {
-                    [] => format!("self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x})"),
-                    ["fencep", "fences"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<24|parameter1<<20)"),
-                    ["p:imm(rs1)"] => format!("let base:u32=parameter0.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|base<<15|parameter0.𝖽𝗂𝗌𝗉.encoded() as u32)"),
-                    ["rd", "0(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15)"),
-                    ["rd", "csr", "rs1"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2<<15)"),
-                    ["rd", "csr", "c:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2.encoded() as u32)"),
-                    ["rd", "i:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15|parameter1.𝖽𝗂𝗌𝗉.encoded() as u32)"),
-                    ["rd", "j:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.encoded() as u32)"),
-                    ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2.encoded() as u32)"),
-                    ["rd", "rs1", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<12)"),
-                    ["rd", "rs1", "rs2"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20)"),
-                    ["rd", "rs1", "rs2", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();let parameter3:u32=parameter3.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<12)"),
-                    ["rd", "rs1", "rs2", "rs3", "rm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let parameter2:u32=parameter2.into();let parameter3:u32=parameter3.into();let parameter4:u32=parameter4.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<27|parameter4<<12)"),
-                    ["rd", "rs1"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15)"),
-                    ["rd", "rs2", "0(rs1)"] =>  format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();let base:u32=parameter2.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|base<<15)"),
-                    ["rd", "u:imm"] => format!("let parameter0:u32=parameter0.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.encoded() as u32)"),
-                    ["rs1", "rs2", "b:imm"] => format!("let parameter0:u32=parameter0.into();let parameter1:u32=parameter1.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<15|parameter1<<20|parameter2.encoded() as u32)"),
-                    ["rs2", "s:imm(rs1)"] => format!("let parameter0:u32=parameter0.into();let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<20|base<<15|parameter1.𝖽𝗂𝗌𝗉.encoded() as u32)"),
+                    [] => formatdoc! {"self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x})"},
+                    ["fencep", "fences"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<24|parameter1<<20)"},
+                    ["p:imm(rs1)"] => formatdoc! {"
+                        let base:u32=parameter0.𝖻𝖺𝗌𝖾.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|base<<15|parameter0.𝖽𝗂𝗌𝗉.encoded() as u32)"},
+                    ["rd", "0(rs1)"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15)"},
+                    ["rd", "csr", "rs1"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let parameter2:u32=parameter2.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2<<15)"},
+                    ["rd", "csr", "c:imm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|parameter2.encoded() as u32)"},
+                    ["rd", "i:imm(rs1)"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|base<<15|parameter1.𝖽𝗂𝗌𝗉.encoded() as u32)"},
+                    ["rd", "j:imm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.encoded() as u32)"},
+                    ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2.encoded() as u32)"},
+                    ["rd", "rs1", "rm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let parameter2:u32=parameter2.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<12)"},
+                    ["rd", "rs1", "rs2"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let parameter2:u32=parameter2.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20)"},
+                    ["rd", "rs1", "rs2", "rm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let parameter2:u32=parameter2.into();
+                        let parameter3:u32=parameter3.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<12)"},
+                    ["rd", "rs1", "rs2", "rs3", "rm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let parameter2:u32=parameter2.into();
+                        let parameter3:u32=parameter3.into();
+                        let parameter4:u32=parameter4.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15|parameter2<<20|parameter3<<27|parameter4<<12)"},
+                    ["rd", "rs1"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<15)"},
+                    ["rd", "rs2", "0(rs1)"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        let base:u32=parameter2.𝖻𝖺𝗌𝖾.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1<<20|base<<15)"},
+                    ["rd", "u:imm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<7|parameter1.encoded() as u32)"},
+                    ["rs1", "rs2", "b:imm"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let parameter1:u32=parameter1.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<15|parameter1<<20|parameter2.encoded() as u32)"},
+                    ["rs2", "s:imm(rs1)"] => formatdoc! {"
+                        let parameter0:u32=parameter0.into();
+                        let base:u32=parameter1.𝖻𝖺𝗌𝖾.into();
+                        self.emit_u32(0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}|parameter0<<20|base<<15|parameter1.𝖽𝗂𝗌𝗉.encoded() as u32)"},
                     _ => panic!("Unsupported combination of instruction arguments {arguments_sql_sources:?}"),
                 };
 
@@ -611,8 +713,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         𝗋𝗌𝟤_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"rs2"),
                         𝖿𝗌𝟥_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"fs3"),
                         𝗋𝗆_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽: arguments_sql_operands.contains(&"rm"),
-                        𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽: if arguments_sql_sources.contains(&"<:imm")
-                        {
+                        𝗂𝗆𝗆𝖾𝖽𝗂𝖺𝗍𝖾_𝗇𝖾𝖾𝖽𝖾𝖽: if arguments_sql_sources.contains(&"<:imm") {
                             Some(𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞::𝔰𝔥𝔦𝔣𝔱_𝔦𝔪𝔪𝔢𝔡𝔦𝔞𝔱𝔢)
                         } else if arguments_sql_sources.contains(&">:imm") {
                             if assembler_kind != 𝐚𝐬𝐬𝐞𝐦𝐛𝐥𝐞𝐫_𝐭𝐲𝐩𝐞::𝔯𝔳64𝔦 {
@@ -638,33 +739,42 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             None
                         },
                         𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇: match arguments_sql_operands[..] {
-                            [] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}(())"),
-                            ["fd", "fs1", "fs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2))"),
-                            ["fd", "fs1", "fs2", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,rm))"),
-                            ["fd", "fs1", "fs2", "fs3", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,fs3,rm))"),
-                            ["fd", "fs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,rm))"),
-                            ["fd", "rs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1))"),
-                            ["fd", "rs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1,rm))"),
-                            ["fd", "i:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
-                            ["fencep", "fences"] => format!(
-                                "let Ok(fencep)=((instruction_bits>>24)&0b1111).try_into()else{{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ}};let Ok(fences)=((instruction_bits>>20)&0b1111).try_into()else{{break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ}};return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fencep,fences))"
-                            ),
-                            ["fs2", "s:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
-                            ["p:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}},))"),
-                            ["rd", "0(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"),
-                            ["rd", "csr", "rs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,rs1))"),
-                            ["rd", "csr", "c:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,imm))"),
-                            ["rd", "fs1", "rm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,rm))"),
-                            ["rd", "fs1", "fs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,fs2))"),
-                            ["rd", "i:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
-                            ["rd", "j:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"),
-                            ["rd", "fs1"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1))"),
-                            ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,imm))"),
-                            ["rd", "rs1", "rs2"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,rs2))"),
-                            ["rd", "rs2", "0(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"),
-                            ["rd", "u:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"),
-                            ["rs1", "rs2", "b:imm"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs1,rs2,imm))"),
-                            ["rs2", "s:imm(rs1)"] => format!("return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"),
+                            [] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}(())"},
+                            ["fd", "fs1", "fs2"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2))"},
+                            ["fd", "fs1", "fs2", "rm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,rm))"},
+                            ["fd", "fs1", "fs2", "fs3", "rm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,fs2,fs3,rm))"},
+                            ["fd", "fs1", "rm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,fs1,rm))"},
+                            ["fd", "rs1"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1))"},
+                            ["fd", "rs1", "rm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,rs1,rm))"},
+                            ["fd", "i:imm(rs1)"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"},
+                            ["fencep", "fences"] => formatdoc! {"
+                                let Ok(fencep)=((instruction_bits>>24)&0b1111).try_into()else{{
+                                    break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ
+                                }};
+                                let Ok(fences)=((instruction_bits>>20)&0b1111).try_into()else{{
+                                    break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈ
+                                }};
+                                return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fencep,fences))"},
+                            ["fs2", "s:imm(rs1)"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((fs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"},
+                            ["p:imm(rs1)"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}},))"},
+                            ["rd", "0(rs1)"] => formatdoc! {"
+                                return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((
+                                    rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"},
+                            ["rd", "csr", "rs1"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,rs1))"},
+                            ["rd", "csr", "c:imm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,csr,imm))"},
+                            ["rd", "fs1", "rm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,rm))"},
+                            ["rd", "fs1", "fs2"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1,fs2))"},
+                            ["rd", "i:imm(rs1)"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"},
+                            ["rd", "j:imm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"},
+                            ["rd", "fs1"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,fs1))"},
+                            ["rd", "rs1", "<:imm" | ">:imm" | "i:imm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,imm))"},
+                            ["rd", "rs1", "rs2"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,rs1,rs2))"},
+                            ["rd", "rs2", "0(rs1)"] => formatdoc! {"
+                                return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((
+                                    rd,rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:𝐮𝐧𝐟𝐢𝐥𝐥𝐞𝐝_𝐟𝐥𝐮𝐞𝐧𝐭_𝐯𝐚𝐥𝐮𝐞{{}}}}))"},
+                            ["rd", "u:imm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rd,imm))"},
+                            ["rs1", "rs2", "b:imm"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs1,rs2,imm))"},
+                            ["rs2", "s:imm(rs1)"] => formatdoc! {"return self.{𝖿𝗇_𝗇𝖺𝗆𝖾}((rs2,𝒂𝒅𝒅𝒓𝒆𝒔𝒔{{𝖻𝖺𝗌𝖾:rs1,𝖽𝗂𝗌𝗉:imm}}))"},
                             _ => panic!("Unsupported combination of instruction arguments {arguments_sql_operands:?}"),
                         },
                     };
@@ -691,8 +801,18 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     _ => panic!("Unsupported instruction opcode mask 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}"),
                 }
 
-                let instruction_info =
-                    format!("impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_type}>for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,{parameters_list}:{arguments_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{{instruction_emit}}}}}");
+                let instruction_info = formatdoc! {"
+                        impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:𝒑𝒂𝒓𝒄𝒆𝒍_𝒆𝒎𝒊𝒕𝒕𝒆𝒓>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}_𝒘𝒊𝒕𝒉<{arguments_type}>
+                        for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮{{
+                            type 𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞;
+                            type 𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞=<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 as 𝒆𝒎𝒊𝒕𝒕𝒆𝒓>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞;
+                            #[inline(always)]
+                            fn {𝖿𝗇_𝗇𝖺𝗆𝖾}_with(&mut self,{parameters_list}:{arguments_type})
+                               ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                            {{
+                                {instruction_emit}
+                            }}
+                        }}"};
                 if rv64_long_shift {
                     let assembler_instructions = leaf_assembler_instructions[assembler_kind as usize]
                         .entry((
@@ -711,7 +831,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     .or_insert_with(Vec::new);
                 assembler_instructions.push(instruction_info);
 
-                let instruction_info: String = format!("𝗿𝗶𝘀𝗰_𝘃::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<{arguments_trait_type}>");
+                let instruction_info: String = formatdoc! {"𝗿𝗶𝘀𝗰_𝘃::{𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<{arguments_trait_type}>"};
                 let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌[assembler_kind as usize]
                     .entry((𝖺𝗎𝗍𝗈_𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), 𝖿𝗇_𝗇𝖺𝗆𝖾.to_owned()))
                     .or_insert_with(BTreeMap::new);
@@ -731,14 +851,26 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
 
                 let arguments_trait_type =
                     arguments_trait_type.replace("Self::", "<<Self as 𝒊𝒏𝒔𝒕𝒓𝒖𝒄𝒕𝒊𝒐𝒏𝒔_𝒄𝒐𝒏𝒔𝒖𝒎𝒆𝒓>::𝓒𝓟𝓤_𝓽𝔂𝓹𝓮 as 𝑪𝑷𝑼>::");
-                let instruction_info =
-                    format!("#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(self,{parameters_list}:{arguments_trait_type})->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>{{self.instruction(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾},{enums_vector_list})}}");
+                let instruction_info = formatdoc! {"
+                        #[inline(always)]
+                        fn {𝖿𝗇_𝗇𝖺𝗆𝖾}(self,{parameters_list}:{arguments_trait_type})
+                            ->Result<Self::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,Self::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                        {{
+                            self.instruction(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{𝖾𝗇𝗎𝗆_𝗏𝖺𝗋𝗂𝖺𝗇𝗍_𝗇𝖺𝗆𝖾},{enums_vector_list})
+                        }}"};
                 let disassembler_instructions = leaf_disassembler_instructions[assembler_kind as usize]
                     .entry((𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾.to_owned(), arguments_type.to_owned()))
                     .or_insert_with(Vec::new);
                 disassembler_instructions.push(instruction_info);
+            };
+
+        for operands_count in 0..=5 {
+            let mut instructions_stream = get_insructions_info(&mut connection, operands_count, assembler_kind, &mut query);
+            while let Some(instruction) = instructions_stream.try_next().await.expect("Connection aborted") {
+                process_instruction(instruction)
             }
         }
+
         for func3 in 0b0000..0b1000 {
             let 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌 =
                 &mut 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌[assembler_kind as usize][func3];
@@ -824,7 +956,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                 }
 
                 if candidate_instructions > 0 {
-                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{𝗈𝗉𝖼𝗈𝖽𝖾}=>{{").to_owned());
+                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(formatdoc! {"{𝗈𝗉𝖼𝗈𝖽𝖾}=>{{"});
                 }
 
                 if 𝖼𝗌𝗋_𝖿𝗂𝖾𝗅𝖽_𝗇𝖾𝖾𝖽𝖾𝖽 {
@@ -884,7 +1016,7 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         } else {
                             𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("else ".to_owned());
                         }
-                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("if instruction_bits==0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}"));
+                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(formatdoc! {"if instruction_bits==0x{𝗈𝗉𝖼𝗈𝖽𝖾:08x}{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}"});
                         continue;
                     }
                     // Values 5 and 6 are reserved for rm field, instruction would be handled by unimplemented_32bit_instruction.
@@ -900,10 +1032,23 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                         }
                         match collected_opcode_mask {
                             0x00000000 => (),
-                            0x01f00f80 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("if rd_bits=={}{{let rs2=(instruction_bits>>20)&0b11111;let imm=𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(instruction_bits as i32).into();match rs2{{", (collected_opcode>>7)&0b11111)),
-                            0x06000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b11{".to_owned()),
-                            0xfc000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 26)&0b111111{".to_owned()),
-                            0xfe000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b1111111{".to_owned()),
+                            0x01f00f80 => {
+                                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(formatdoc! {"
+                                if rd_bits=={}{{
+                                    let rs2=(instruction_bits>>20)&0b11111;
+                                    let imm=𝐫𝐢𝐬𝐜_𝐯_𝟑𝟐𝐛𝐢𝐭_𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧(instruction_bits as i32).into();
+                                    match rs2{{",
+                                (collected_opcode>>7)&0b11111})
+                            }
+                            0x06000000 => {
+                                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b11{".to_owned())
+                            }
+                            0xfc000000 => {
+                                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 26)&0b111111{".to_owned())
+                            }
+                            0xfe000000 => {
+                                𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push("match(instruction_bits >> 25)&0b1111111{".to_owned())
+                            }
                             _ => panic!("Unsupported opcode mask: 0x{collected_opcode_mask:08x}"),
                         }
                         // Note: RISC-V design specifically designates 0 as invalid instruction and it's also compressed one, thus
@@ -925,11 +1070,12 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                             }
                             match (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄) {
                                 (0x01f00f80, 0x00000000) => {
-                                    submatch_used = Some(format!("_=>(),}}}}{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}"));
+                                    submatch_used = Some(formatdoc! {"_=>(),}}}}{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}"});
                                     unprocessed_instructions -= 1;
                                 }
                                 (0x01f00f80, 0x01f00f80) => {
-                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111));
+                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌
+                                        .push(formatdoc! {"{}=>{{{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇}}}", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111});
                                     unprocessed_instructions -= 1;
                                 }
                                 (0xfe000000, 0xfff00000) => {
@@ -938,10 +1084,11 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                             𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(submatch_used);
                                         }
                                         last_processed_opcode = 𝗈𝗉𝖼𝗈𝖽𝖾 & 0xfe000000;
-                                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>match rs2_bits{{", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111));
+                                        𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                                            formatdoc! {"{}=>match rs2_bits{{", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111});
                                         submatch_used = Some("_=>break 'ᵘⁿⁱᵐᵖˡᵉᵐᵉⁿᵗᵉᵈˡᵒⁿᵍ,}".to_owned());
                                     }
-                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111));
+                                    𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(formatdoc! {"{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾 >> 20) & 0b11111});
                                 }
                                 (collected_opcode_mask, 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄)
                                     if collected_opcode_mask == 𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄 =>
@@ -950,11 +1097,16 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                                         𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(submatch_used);
                                     }
                                     match collected_opcode_mask {
-                                        0x00000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇};")),
-                                        0x06000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b11)),
-                                        0xfc000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>26)&0b111111)),
-                                        0xfe000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(format!("{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111)),
-                                        _ => panic!("Internal error {𝗈𝗉𝖼𝗈𝖽𝖾} 0x{collected_opcode_mask:08x}"), // Should have been reported already.
+                                        0x00000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                                            formatdoc! {"{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇};"}),
+                                        0x06000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                                            formatdoc! {"{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b11}),
+                                        0xfc000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                                            formatdoc! {"{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>26)&0b111111}),
+                                        0xfe000000 => 𝖽𝖾𝖼𝗈𝖽𝖾_𝟥𝟤𝖻𝗂𝗍_𝗂𝗇𝗌𝗍𝗋𝗎𝖼𝗍𝗂𝗈𝗇𝗌.push(
+                                            formatdoc! {"{}=>{𝖾𝗆𝗂𝗍_𝖾𝗑𝗉𝗋𝖾𝗌𝗌𝗂𝗈𝗇},", (𝗈𝗉𝖼𝗈𝖽𝖾>>25)&0b1111111}),
+                                        // Should have been reported already.
+                                        _ => panic!("Internal error {𝗈𝗉𝖼𝗈𝖽𝖾} 0x{collected_opcode_mask:08x}"),
                                     }
                                 }
                                 _ => panic!("Inconsistent opcode masks: 0x{collected_opcode_mask:08x} 0x{𝗈𝗉𝖼𝗈𝖽𝖾_𝗆𝖺𝗌𝗄:08x}"),
@@ -997,16 +1149,51 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
             .iter()
             .map(|(instruction_name, enum_instruction_names)| {
                 assert_eq!(enum_instruction_names.len(), 1);
-                names_literal.extend_from_slice(format!("\\x{:02x}", instruction_name.len()).as_bytes());
+                names_literal.extend_from_slice(formatdoc! {"\\x{:02x}", instruction_name.len()}.as_bytes());
                 names_literal.extend_from_slice(instruction_name.as_bytes());
-                let defintion = format!("{}={}", enum_instruction_names[0], position);
-                let match_arm = format!("{} => Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{}),", position, enum_instruction_names[0]);
+                let defintion = formatdoc! {"{}={}", enum_instruction_names[0], position};
+                let match_arm = formatdoc! {"{} => Ok(𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝::{}),", position, enum_instruction_names[0]};
                 position += instruction_name.len() + 1;
                 (defintion, match_arm)
             })
             .unzip();
-        instructions_enum_declararion[assembler_kind as usize] =
-            format!("#[derive(Clone,Copy,Debug,Eq,Ord,PartialEq,PartialOrd)]#[repr(i16)]pub enum 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{{}}}#[cfg(feature = \"std\")]#[allow(non_upper_case_globals)]impl std::fmt::Display for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{#[inline(always)]fn fmt(&self,formatter:&mut std::fmt::Formatter<'_>)->std::fmt::Result{{std::fmt::Write::write_str(formatter,unsafe{{core::str::from_utf8_unchecked(&𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize+1..*self as usize+1+((𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize])as usize)])}})}}}}const 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰:&str=\"{}\";impl TryFrom<i16> for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{type Error=super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;#[inline(always)]fn try_from(value: i16) -> Result<Self, Self::Error>{{match value {{{}_ => Err(super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))}}}}}}", enum_variant_list.join(","), core::str::from_utf8(&names_literal).unwrap(), enum_match_list.concat());
+        instructions_enum_declararion[assembler_kind as usize] = formatdoc! {r#"
+                #[derive(Clone,Copy,Debug,Eq,Ord,PartialEq,PartialOrd)]
+                #[repr(i16)]
+                pub enum 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{{}}}
+                #[cfg(feature = "std")]
+                #[allow(non_upper_case_globals)]
+                impl std::fmt::Display for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{
+                    #[inline(always)]
+                    fn fmt(&self,formatter:&mut std::fmt::Formatter<'_>)
+                        ->std::fmt::Result
+                    {{
+                        std::fmt::Write::write_str(formatter,
+                            unsafe{{
+                                core::str::from_utf8_unchecked(
+                                    &𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[
+                                         *self as usize+1..
+                                         *self as usize+1+
+                                           ((𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰.as_bytes()[*self as usize])as usize)
+                                    ]
+                                )
+                            }}
+                        )
+                    }}
+                }}
+                const 𝔦𝔫𝔰𝔱𝔯𝔲𝔠𝔱𝔦𝔬𝔫_𝔫𝔞𝔪𝔢𝔰:&str="{}";
+                impl TryFrom<i16> for 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧_𝐤𝐢𝐧𝐝{{
+                    type Error=super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫;
+                    #[inline(always)]
+                    fn try_from(value: i16) -> Result<Self, Self::Error>{{
+                        match value {{
+                            {}_ => Err(super::super::𝗮𝘀𝘀𝗲𝗺𝗯𝗹𝗲𝗿::𝗲𝗻𝘂𝗺𝘀::𝐭𝐫𝐲_𝐟𝐫𝐨𝐦_𝐢𝐧𝐭_𝐞𝐫𝐫𝐨𝐫(()))
+                        }}
+                    }}
+                }}"#,
+        enum_variant_list.join(","),
+        core::str::from_utf8(&names_literal).unwrap(),
+        enum_match_list.concat()};
     }
 
     let 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌 = 𝖽𝖾𝖼𝗅𝖺𝗋𝖾_𝗍𝗋𝖺𝗂𝗍𝗌.map(|traits_info| {
@@ -1021,7 +1208,18 @@ async fn get_instrution_info() -> 𝐢𝐧𝐬𝐭𝐫𝐮𝐜𝐭𝐢𝐨𝐧�
                     })
                     .collect::<Vec<_>>()
                     .join("+");
-                format!("pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{#[inline(always)]fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)->Result<<Self as 𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,<Self as 𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>where Self:𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)}}}}impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇ for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}")
+                formatdoc! {"
+                    pub trait {𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇:Æ+{trait_info}æ{{
+                        #[inline(always)]
+                        fn {𝖿𝗇_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>(&mut self,arguments:𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮)
+                            ->Result<<Self as 𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐫𝐞𝐬𝐮𝐥𝐭_𝐭𝐲𝐩𝐞,
+                                     <Self as 𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>>::𝐞𝐫𝐫𝐨𝐫_𝐭𝐲𝐩𝐞>
+                        where Self:𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>{{
+                            𝗿𝗶𝘀𝗰_𝘃::{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}::<𝓹𝓪𝓻𝓪𝓶𝓮𝓽𝓮𝓻_𝓽𝓾𝓹𝓵𝓮>::{𝖿𝗇_𝗇𝖺𝗆𝖾}(self,arguments)
+                        }}
+                    }}
+                    impl<𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮:Æ+{trait_info}>{𝗍𝗋𝖺𝗂𝗍_𝗇𝖺𝗆𝖾}⋇
+                    for 𝓪𝓼𝓼𝓮𝓶𝓫𝓵𝓮𝓻_𝓽𝔂𝓹𝓮 æ{{}}"}
             })
             .collect::<Vec<_>>()
     });
@@ -1090,18 +1288,12 @@ enum 𝐢𝐦𝐦𝐞𝐝𝐢𝐚𝐭𝐞_𝐭𝐲𝐩𝐞 {
 
 async fn get_database_connection() -> sqlx::SqliteConnection {
     use sqlx::Connection;
-    let root_path = std::env::current_dir().expect("Obtaining crate root path");
-    let root_path = root_path.to_str().expect("Turning crate root path into unicode string");
-    // Note: during regular build root_path points to the yace workspace root, but in doctests
-    // we get nested crate root.  Try to access both paths.
-    let database_url = format!("sqlite:{root_path}/riscv-instructions.db?immutable=1");
-    let database_url_fallback = format!("sqlite:{root_path}/../riscv-instructions.db?immutable=1");
-    let Ok(connection) = sqlx::SqliteConnection::connect(database_url.as_str()).await else {
-        return sqlx::SqliteConnection::connect(database_url_fallback.as_str())
-            .await
-            .expect("Failed to connect to instructions.db database")
-    };
-    connection
+    let root_path = std::env::var("CARGO_MANIFEST_DIR").expect("Obtaining crate root path");
+    let root_path = root_path.as_str();
+    let database_url = formatdoc! {"sqlite:{root_path}/../riscv-instructions.db?immutable=1"};
+    sqlx::SqliteConnection::connect(database_url.as_str())
+        .await
+        .expect("Failed to connect to instructions.db database")
 }
 
 fn get_insructions_info<'ᵉˣᵉᶜᵘᵗᵒʳ, 𝓭𝓪𝓽𝓪𝓫𝓪𝓼𝓮_𝓽𝔂𝓹𝓮: sqlx::Database>(
@@ -1148,8 +1340,10 @@ where
         } else if operands_count == 5 {
             "AND operands.operand4 IS NOT NULL".to_owned()
         } else {
-            format!(
-                "AND operands.operand{} IS NOT NULL AND operands.operand{} IS NULL",
+            formatdoc!(
+                "
+                AND operands.operand{} IS NOT NULL
+                AND operands.operand{} IS NULL",
                 operands_count - 1,
                 operands_count
             )
@@ -1163,7 +1357,7 @@ where
             let (prefix, suffix) = if index == 0 {
                 ("", "".to_owned())
             } else {
-                (" LEFT JOIN", format!("ON name0 = name{index}"))
+                (" LEFT JOIN", formatdoc! {"ON name0 = name{index}"})
             };
             select_traits.push(formatdoc! {"
                 {prefix}(
@@ -1185,9 +1379,9 @@ where
                     HAVING priority = MAX(priority)
                     ORDER BY name{index}
                 ){suffix}"});
-            operand_information.push(format!(
-                " LEFT JOIN operand AS operand{index} ON operand{index} = operand{index}.name"
-            ));
+            operand_information.push(formatdoc! {"
+                LEFT JOIN operand AS operand{index}
+                ON operand{index} = operand{index}.name "});
             trait_information.push(formatdoc! {"
                 ,traits_information AS trait{index} ON trait{index} = trait{index}.name
                 AND operand{index}.parameter_type = trait{index}.allowed_operand"});

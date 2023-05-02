@@ -2131,6 +2131,8 @@ INSERT INTO instruction VALUES('xchg',':v-=v',NULL,NULL,NULL,NULL,'primary',0x90
 INSERT INTO instruction VALUES('xchg','=v-:v',NULL,NULL,NULL,NULL,'primary',0x90,NULL,'8086');
 INSERT INTO instruction VALUES('xchg','Eb-Gb',NULL,NULL,NULL,NULL,'primary',0x86,NULL,'8086');
 INSERT INTO instruction VALUES('xchg','Ev-Gv',NULL,NULL,NULL,NULL,'primary',0x87,NULL,'8086');
+INSERT INTO instruction VALUES('xchg','Gb-Eb',NULL,NULL,NULL,NULL,'primary',0x86,NULL,'8086');
+INSERT INTO instruction VALUES('xchg','Gv-Ev',NULL,NULL,NULL,NULL,'primary',0x87,NULL,'8086');
 
 INSERT INTO instruction VALUES('xlat','%b',NULL,NULL,NULL,NULL,'primary',0xd7,NULL,'8086');
 INSERT INTO instruction VALUES('xlat',':b-%b',NULL,NULL,NULL,NULL,'primary',0xd7,NULL,'8086');

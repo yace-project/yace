@@ -5,6 +5,7 @@ authors = ["Igor Pavlychev <zdemia@mail.ru>"]
 description = "Procedural macros for 𝔜𝔄ℭ𝔈."
 license = "MIT"
 edition = "2021"
+rust-version = "1.70"
 
 [lib]
 proc-macro = true
