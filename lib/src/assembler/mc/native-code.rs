@@ -756,14 +756,35 @@ where
                             ) -> Result<(), Box<dyn std::error::Error>>,
                         >(function)
                     };
+                    #[cfg(miri)]
+                    let function = {
+                        let functions = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.lock().unwrap();
+                        let Some(ref functions) = *functions else { panic!("Internal error: map is none after creation"); };
+                        let function = functions.get(&function).unwrap();
+                        unsafe {
+                            core::mem::transmute::<
+                                fn(
+                                    code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                ) -> Result<(), Box<dyn std::error::Error>>,
+                                fn(
+                                    code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                ) -> Result<(), Box<dyn std::error::Error>>,
+                            >(*function)
+                        }
+                    };
                     index += core::mem::size_of::<usize>();
                     // SAFETY: An uninitialized `[use core::mem::MaybeUninit<_>; LEN]` is valid.
+                    #[cfg(not(miri))]
                     let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
                         𝗎𝗇𝗂𝗇𝗂𝗍_𝖻𝗎𝖿𝖿𝖾𝗋: unsafe {
                             core::mem::MaybeUninit::<
                                 [core::mem::MaybeUninit<u8>; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                             >::uninit().assume_init()
                         }
+                    };
+                    #[cfg(miri)]
+                    let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
+                        𝗋𝖺𝗐_𝖻𝗎𝖿𝖿𝖾𝗋: [0; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                     };
                     let lbls: usize = emit_label_fn_info as u8 as usize;
                     let extra: usize = (emit_label_fn_info >> 8) as u8 as usize;
@@ -798,38 +819,7 @@ where
                         }
                     }
                     index = (index + extra + (core::mem::align_of::<usize>()-1)) & !(core::mem::align_of::<usize>()-1);
-                    #[cfg(miri)]
-                    match (core::mem::size_of::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮>(), lbls, extra) {
-                        (2, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i16_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i16_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        (4, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i32_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i32_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        (8, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i64_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i64_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        _ => panic!("Unhandled combination of parameters in 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 processing"),
-                    }
-                    #[cfg(not(miri))]
+
                     function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
                              // SAFETY: construction is symmetric to what inject_label_function does.
                              &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺}
@@ -880,14 +870,35 @@ where
                                 ) -> Result<(), Box<dyn std::error::Error>>,
                             >(function)
                         };
+                        #[cfg(miri)]
+                        let function = {
+                            let functions = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.lock().unwrap();
+                            let Some(ref functions) = *functions else { panic!("Internal error: map is none after creation"); };
+                            let function = functions.get(&function).unwrap();
+                            unsafe {
+                                core::mem::transmute::<
+                                    fn(
+                                        code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                    ) -> Result<(), Box<dyn std::error::Error>>,
+                                    fn(
+                                        code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                    ) -> Result<(), Box<dyn std::error::Error>>,
+                                >(*function)
+                            }
+                        };
                         index += core::mem::size_of::<usize>();
                         // SAFETY: An uninitialized `[use core::mem::MaybeUninit<_>; LEN]` is valid.
+                        #[cfg(not(miri))]
                         let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
                             𝗎𝗇𝗂𝗇𝗂𝗍_𝖻𝗎𝖿𝖿𝖾𝗋: unsafe {
                                 core::mem::MaybeUninit::<
                                     [core::mem::MaybeUninit<u8>; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                                 >::uninit().assume_init()
                             }
+                        };
+                        #[cfg(miri)]
+                        let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
+                            𝗋𝖺𝗐_𝖻𝗎𝖿𝖿𝖾𝗋: [0; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                         };
                         let lbls: usize = emit_label_fn_info as u8 as usize;
                         let extra: usize = (emit_label_fn_info >> 8) as u8 as usize;
@@ -909,38 +920,6 @@ where
                             }
                         }
                         index = (index + extra + (core::mem::align_of::<usize>()-1)) & !(core::mem::align_of::<usize>()-1);
-                        #[cfg(miri)]
-                        match (core::mem::size_of::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮>(), lbls, extra) {
-                            (2, 1, 0) => {
-                                let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i16_1_0.lock().unwrap();
-                                let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                                let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                                function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                         // SAFETY: construction is symmetric to what inject_label_function does.
-                                         &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i16_1_0}
-                                ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                            }
-                            (4, 1, 0) => {
-                                let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i32_1_0.lock().unwrap();
-                                let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                                let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                                function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                         // SAFETY: construction is symmetric to what inject_label_function does.
-                                         &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i32_1_0}
-                                ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                            }
-                            (8, 1, 0) => {
-                                let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i64_1_0.lock().unwrap();
-                                let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                                let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                                function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
-                                         // SAFETY: construction is symmetric to what inject_label_function does.
-                                         &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i64_1_0}
-                                ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                            }
-                            _ => panic!("Unhandled combination of parameters in 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 processing"),
-                        }
-                        #[cfg(not(miri))]
                         function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔠𝔬𝔡𝔢_𝔰𝔦𝔷𝔢_𝔠𝔬𝔲𝔫𝔱𝔢𝔯(&mut code_size),
                                  // SAFETY: construction is symmetric to what inject_label_function does.
                                  &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺}
@@ -986,14 +965,36 @@ where
                             ) -> Result<(), Box<dyn std::error::Error>>,
                         >(function)
                     };
+                    #[cfg(miri)]
+                    let function = {
+                        let functions = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.lock().unwrap();
+                        let Some(ref functions) = *functions else { panic!("Internal error: map is none after creation"); };
+                        let function = functions.get(&function).unwrap();
+                        unsafe {
+                            core::mem::transmute::<
+                                fn(
+                                    //code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                    code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                ) -> Result<(), Box<dyn std::error::Error>>,
+                                fn(
+                                    code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                                ) -> Result<(), Box<dyn std::error::Error>>,
+                            >(*function)
+                        }
+                    };
                     index += core::mem::size_of::<usize>();
                     // SAFETY: An uninitialized `[use core::mem::MaybeUninit<_>; LEN]` is valid.
+                    #[cfg(not(miri))]
                     let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
                         𝗎𝗇𝗂𝗇𝗂𝗍_𝖻𝗎𝖿𝖿𝖾𝗋: unsafe {
                             core::mem::MaybeUninit::<
                                 [core::mem::MaybeUninit<u8>; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                             >::uninit().assume_init()
                         }
+                    };
+                    #[cfg(miri)]
+                    let mut function_arguments = 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮> {
+                        𝗋𝖺𝗐_𝖻𝗎𝖿𝖿𝖾𝗋: [0; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞]
                     };
                     let lbls: usize = emit_label_fn_info as u8 as usize;
                     let extra: usize = (emit_label_fn_info >> 8) as u8 as usize;
@@ -1015,38 +1016,6 @@ where
                         }
                     }
                     index = (index + extra + (core::mem::align_of::<usize>()-1)) & !(core::mem::align_of::<usize>()-1);
-                    #[cfg(miri)]
-                    match (core::mem::size_of::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮>(), lbls, extra) {
-                        (2, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i16_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔪𝔦𝔱𝔱𝔢𝔯(destination),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i16_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        (4, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i32_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔪𝔦𝔱𝔱𝔢𝔯(destination),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i32_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        (8, 1, 0) => {
-                            let 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i64_1_0.lock().unwrap();
-                            let Some(ref 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                            let function = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.get(&function).unwrap();
-                            function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔪𝔦𝔱𝔱𝔢𝔯(destination),
-                                     // SAFETY: construction is symmetric to what inject_label_function does.
-                                     &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i64_1_0}
-                            ).map_err(|err| 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐞𝐫𝐫𝐨𝐫𝐬::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔯𝔯𝔬𝔯(err))?;
-                        }
-                        _ => panic!("Unhandled combination of parameters in 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 processing"),
-                    }
-                    #[cfg(not(miri))]
                     function(𝐞𝐦𝐢𝐭𝐭𝐞𝐫::𝔡𝔶𝔫𝔞𝔪𝔦𝔠_𝔢𝔪𝔦𝔱𝔱𝔢𝔯(destination),
                              // SAFETY: construction is symmetric to what inject_label_function does.
                              &unsafe {function_arguments.𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺}
@@ -1302,12 +1271,6 @@ union 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬_𝐮𝐧𝐢𝐨𝐧<𝓪𝓭𝓭𝓻
     𝗋𝖺𝗐_𝖻𝗎𝖿𝖿𝖾𝗋: [u8; 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰 * core::mem::size_of::<i64>() + 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞],
     𝗅𝖺𝖻𝖾𝗅𝗌_𝖺𝗇𝖽_𝗌𝗍𝖺𝖼𝗄: 𝐥𝐚𝐛𝐞𝐥𝐬_𝐚𝐧𝐝_𝐬𝐭𝐚𝐜𝐤_𝐢𝐧𝐟𝐨<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮>,
     𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺: 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>,
-    #[cfg(miri)]
-    𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i16_1_0: 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i16, 1, 0>,
-    #[cfg(miri)]
-    𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i32_1_0: 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i32, 1, 0>,
-    #[cfg(miri)]
-    𝖿𝗎𝗇𝖼𝗍𝗂𝗈𝗇_𝖽𝖺𝗍𝖺_i64_1_0: 𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 1, 0>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -1769,62 +1732,22 @@ impl 𝐧𝐚𝐭𝐢𝐯𝐞_𝐦𝐚𝐜𝐡𝐢𝐧𝐞_𝐜𝐨𝐝𝐞_𝐛
             >(function)
         };
         #[cfg(miri)]
-        match (core::mem::size_of::<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮>(), 𝔩𝔞𝔟𝔢𝔩𝔰_𝔰𝔦𝔷𝔢, 𝔢𝔵𝔱𝔯𝔞_𝔰𝔦𝔷𝔢) {
-            (2, 1, 0) => {
-                let function = unsafe {
-                    core::mem::transmute::<
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔩𝔞𝔟𝔢𝔩𝔰_𝔰𝔦𝔷𝔢, 𝔢𝔵𝔱𝔯𝔞_𝔰𝔦𝔷𝔢>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i16, 1, 0>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                    >(function)
-                };
-                let mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i16_1_0.lock().unwrap();
-                if  𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.is_none() {
-                    𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.replace(HashMap::new());
-                }
-                let Some(ref mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.insert(function_address, function);
+        {
+            let mut functions = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.lock().unwrap();
+            if functions.is_none() {
+               functions.replace(HashMap::new());
             }
-            (4, 1, 0) => {
-                let function = unsafe {
-                    core::mem::transmute::<
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔩𝔞𝔟𝔢𝔩𝔰_𝔰𝔦𝔷𝔢, 𝔢𝔵𝔱𝔯𝔞_𝔰𝔦𝔷𝔢>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i32, 1, 0>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                    >(function)
-                };
-                let mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i32_1_0.lock().unwrap();
-                if  𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.is_none() {
-                    𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.replace(HashMap::new());
-                }
-                let Some(ref mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.insert(function_address, function);
-            }
-            (8, 1, 0) => {
-                let function = unsafe {
-                    core::mem::transmute::<
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔩𝔞𝔟𝔢𝔩𝔰_𝔰𝔦𝔷𝔢, 𝔢𝔵𝔱𝔯𝔞_𝔰𝔦𝔷𝔢>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                        fn(
-                            code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 1, 0>
-                        ) -> Result<(), Box<dyn std::error::Error>>,
-                    >(function)
-                };
-                let mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 = 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i64_1_0.lock().unwrap();
-                if  𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.is_none() {
-                    𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.replace(HashMap::new());
-                }
-                let Some(ref mut 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰) = *𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 else { panic!("Internal error: map is none after creation"); };
-                𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰.insert(function_address, function);
-            }
-            _ => panic!("Unhandled combination of parameters in 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰 processing"),
+            let Some(ref mut functions) = *functions else { panic!("Internal error: map is none after creation"); };
+            functions.insert(function_address, unsafe {
+                core::mem::transmute::<
+                    fn(
+                        code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<𝓪𝓭𝓭𝓻𝓮𝓼𝓼_𝓽𝔂𝓹𝓮, 𝔩𝔞𝔟𝔢𝔩𝔰_𝔰𝔦𝔷𝔢, 𝔢𝔵𝔱𝔯𝔞_𝔰𝔦𝔷𝔢>
+                    ) -> Result<(), Box<dyn std::error::Error>>,
+                    fn(
+                        code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>
+                    ) -> Result<(), Box<dyn std::error::Error>>,
+                >(function)
+            });
         }
 
         self.𝖽𝖺𝗍𝖺.extend_from_slice(&function_address.to_ne_bytes());
@@ -1993,22 +1916,13 @@ const 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞: usize = 4 * core::mem::size_of::<i64>()
 // This is not supported by miri because of strict_provenance issues, but there are no appropriate functions for
 // function pointers yet.
 //
-// Thus under miri would would just stash addresses of functions and use them when needed.
+// Thus under miri we would just stash addresses of functions and use them when needed.
 // It's not what code in non-miri case is doing but allows us to test the rest of the code.
 #[cfg(miri)]
 #[allow(non_upper_case_globals)]
-static 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i16_1_0: Mutex<Option<HashMap<
-    usize, fn(code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i16, 1, 0>) -> Result<(), Box<dyn std::error::Error>>,
->>> = Mutex::new(None);
-#[cfg(miri)]
-#[allow(non_upper_case_globals)]
-static 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i32_1_0: Mutex<Option<HashMap<
-    usize, fn(code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i32, 1, 0>) -> Result<(), Box<dyn std::error::Error>>,
->>> = Mutex::new(None);
-#[cfg(miri)]
-#[allow(non_upper_case_globals)]
-static 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰_i64_1_0: Mutex<Option<HashMap<
-    usize, fn(code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 1, 0>) -> Result<(), Box<dyn std::error::Error>>,
+static 𝔪𝔦𝔯𝔦_𝔣𝔲𝔫𝔠𝔱𝔦𝔬𝔫𝔰: Mutex<Option<HashMap<
+    usize, fn(code_emitter: 𝐞𝐦𝐢𝐭𝐭𝐞𝐫, function_arguments: &𝐚𝐫𝐠𝐮𝐦𝐞𝐧𝐭𝐬<i64, 𝔪𝔞𝔵_𝔩𝔞𝔟𝔢𝔩𝔰, 𝔪𝔞𝔵_𝔢𝔵𝔱𝔯𝔞>)
+        -> Result<(), Box<dyn std::error::Error>>,
 >>> = Mutex::new(None);
 
 #[cfg(miri)]
